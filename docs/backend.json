@@ -1,0 +1,351 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the IHN TopUp application.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the user." },
+        "name": { "type": "string", "description": "User's full name." },
+        "email": { "type": "string", "description": "User's email address.", "format": "email" },
+        "phone": { "type": "string", "description": "User's phone number." },
+        "savedGameUids": { "type": "array", "description": "Array of saved game UIDs for the user.", "items": { "type": "object", "properties": { "game": {"type": "string"}, "uid": {"type": "string"} } } },
+        "walletBalance": { "type": "number", "description": "User's current wallet balance." },
+        "referralCode": { "type": "string", "description": "Unique referral code for the user." },
+        "isVerified": { "type": "boolean", "description": "Indicates if the user's account is verified." },
+        "isAdmin": { "type": "boolean", "description": "Indicates if the user has admin privileges." },
+        "points": { "type": "number", "description": "Points earned by the user through referrals or other activities." },
+        "fcmToken": { "type": "string", "description": "Firebase Cloud Messaging token for push notifications." }
+      },
+      "required": ["id", "name", "email"]
+    },
+    "TopUpCard": {
+      "title": "TopUpCard",
+      "type": "object",
+      "description": "Represents a top-up card for a specific game or service.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the top-up card." },
+        "categoryId": { "type": "string", "description": "Reference to Category." },
+        "name": { "type": "string", "description": "Name of the top-up card (e.g., Free Fire Diamonds)." },
+        "description": { "type": "string", "description": "Detailed description of the top-up card." },
+        "image": { "type": "object", "properties": { "src": { "type": "string", "format": "uri" }, "hint": { "type": "string" } } },
+        "price": { "type": "number", "description": "Base price of the top-up card if there are no options." },
+        "serviceType": { "type": "string", "enum": ["Game", "Others", "eFootball"], "description": "Type of service, e.g., Game or Others." },
+        "gameUidFormat": { "type": "string", "description": "Format or validation rules for the Game UID" },
+        "isActive": { "type": "boolean", "description": "Controls visibility of the card on the user-facing site." },
+        "sortOrder": { "type": "number", "description": "The order in which the card should be displayed." },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "price": { "type": "number" },
+              "inStock": { "type": "boolean", "description": "Indicates if the package option is in stock." },
+              "stockLimit": { "type": "number", "description": "Optional: Maximum number of times this option can be sold." },
+              "stockSoldCount": { "type": "number", "description": "How many times this option has been sold." }
+            }
+          }
+        }
+      },
+      "required": ["id", "categoryId", "name", "price", "isActive"]
+    },
+    "Category": {
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category of top-up cards (e.g., Discount Offers, Regular TopUp).",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the category." },
+        "name": { "type": "string", "description": "Name of the category." },
+        "description": { "type": "string", "description": "Description of the category." },
+        "imageUrl": { "type": "string", "description": "URL of the image for the category.", "format": "uri" },
+        "status": { "type": "string", "enum": ["Active", "Draft"] },
+        "sortOrder": { "type": "number", "description": "The order in which the category should be displayed." }
+      },
+      "required": ["id", "name", "status"]
+    },
+    "Order": {
+      "title": "Order",
+      "type": "object",
+      "description": "Represents an order placed by a user.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the order." },
+        "userId": { "type": "string", "description": "Reference to User." },
+        "userName": { "type": "string", "description": "Name of the user at the time of order." },
+        "topUpCardId": { "type": "string", "description": "Reference to TopUpCard." },
+        "productName": { "type": "string", "description": "Name of the product at time of order." },
+        "productOption": { "type": "string", "description": "Selected option of the product at time of order." },
+        "quantity": { "type": "number", "description": "Quantity of the top-up card ordered." },
+        "gameUid": { "type": "string", "description": "Game UID provided by the user for the order." },
+        "paymentMethod": { "type": "string", "description": "Payment method used for the order." },
+        "couponId": { "type": ["string", "null"], "description": "Reference to Coupon." },
+        "originalAmount": { "type": "number", "description": "The original total amount of the order before discounts." },
+        "totalAmount": { "type": "number", "description": "Total amount of the order after applying discounts." },
+        "orderDate": { "type": "string", "description": "Date and time when the order was placed.", "format": "date-time" },
+        "status": { "type": "string", "description": "Status of the order.", "enum": ["Pending", "Processing", "Completed", "Cancelled", "Refunded"] },
+        "isLimitedStock": { "type": "boolean", "description": "True if the order was for a stock-limited item." },
+        "cancellationReason": { "type": "string", "description": "Reason for order cancellation or refund, if applicable." },
+        "manualPaymentDetails": {
+          "type": "object",
+          "description": "Details for manual payment verification.",
+          "properties": {
+            "senderPhone": { "type": "string" },
+            "transactionId": { "type": "string" },
+            "method": { "type": "string" }
+          }
+        },
+        "eFootballDetails": {
+          "type": "object",
+          "description": "Details specific to eFootball orders.",
+          "properties": {
+            "konamiId": { "type": "string" },
+            "password": { "type": "string" },
+            "whatsappNumber": { "type": "string" }
+          }
+        }
+      },
+      "required": ["id", "userId", "userName", "topUpCardId", "quantity", "gameUid", "paymentMethod", "totalAmount", "orderDate", "status"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "type": "object",
+      "description": "Represents a discount coupon.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the coupon." },
+        "name": { "type": "string", "description": "Public name of the coupon (e.g., 'New User Discount')." },
+        "code": { "type": "string", "description": "Coupon code (e.g., 'WELCOME10')." },
+        "type": { "type": "string", "description": "Type of discount (e.g., Percentage, Fixed Amount)." },
+        "value": { "type": "number", "description": "Discount value." },
+        "minPurchaseAmount": { "type": "number", "description": "Minimum purchase amount required to use the coupon. Optional." },
+        "expiryDate": { "type": "string", "description": "Date when the coupon expires. Optional.", "format": "date-time" },
+        "usageLimitPerUser": { "type": "number", "description": "Maximum number of times a single user can use this coupon. Optional." },
+        "totalUsageLimit": { "type": "number", "description": "Maximum number of times this coupon can be used in total. Optional." },
+        "categoryIds": { "type": "array", "description": "IDs of categories where the coupon is applicable.", "items": { "type": "string" } },
+        "isActive": { "type": "boolean", "description": "Whether the coupon is currently active." },
+        "isStoreVisible": { "type": "boolean", "description": "Whether the coupon is visible in the user-facing coupon store." },
+        "claimLimit": { "type": "number", "description": "How many users can claim this coupon from the store." },
+        "claimedCount": { "type": "number", "description": "How many users have already claimed this coupon from the store." }
+      },
+      "required": ["id", "name", "code", "type", "value", "isActive"]
+    },
+    "UserCoupon": {
+      "title": "UserCoupon",
+      "type": "object",
+      "description": "Represents a coupon owned by a user. This schema defines the structure of a coupon document within a user's `coupons` subcollection. Security rules will ensure that only the owner can read or write their own coupons, including listing them.",
+      "properties": {
+        "code": { "type": "string", "description": "The coupon code." },
+        "description": { "type": "string", "description": "A description of the coupon and its benefits." },
+        "acquiredDate": { "type": "string", "description": "Date the user acquired the coupon.", "format": "date-time" }
+      },
+      "required": ["code", "description", "acquiredDate"]
+    },
+    "Referral": {
+      "title": "Referral",
+      "type": "object",
+      "description": "Represents a referral relationship.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the referral." },
+        "referrerId": { "type": "string", "description": "ID of the referring user." },
+        "refereeId": { "type": "string", "description": "ID of the referred user." },
+        "referralDate": { "type": "string", "description": "Date of referral.", "format": "date-time" },
+        "bonusEarnedReferrer": { "type": "number", "description": "Bonus earned by referrer." },
+        "bonusEarnedReferee": { "type": "number", "description": "Bonus earned by referee." },
+        "isFirstOrderComplete": { "type": "boolean", "description": "If referee completed first order." }
+      },
+      "required": ["id", "referrerId", "refereeId", "referralDate"]
+    },
+    "ReferralSettings": {
+      "title": "ReferralSettings",
+      "type": "object",
+      "description": "Stores the settings for the referral system. This should be a single document.",
+      "properties": {
+        "signupBonus": { "type": "number", "description": "Points a new user gets for signing up with a referral code." },
+        "referrerBonus": { "type": "number", "description": "Points a referrer gets when their referred user signs up." },
+        "firstOrderBonus": { "type": "number", "description": "Bonus points for the referrer when their referred user completes their first order." },
+        "purchaseBonusTiers": {
+          "type": "array",
+          "description": "Tiers for rewarding users based on their total spending.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "threshold": { "type": "number" },
+              "bonus": { "type": "number" }
+            }
+          }
+        }
+      },
+      "required": ["signupBonus", "referrerBonus", "firstOrderBonus", "purchaseBonusTiers"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "type": "object",
+      "description": "Represents a promotional banner.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the banner." },
+        "image": { "type": "object", "properties": { "src": { "type": "string", "format": "uri" }, "alt": { "type": "string" }, "hint": { "type": "string" } } },
+        "linkUrl": { "type": "string", "description": "URL the banner links to.", "format": "uri" },
+        "startDate": { "type": "string", "description": "Banner start date.", "format": "date-time" },
+        "endDate": { "type": "string", "description": "Banner end date.", "format": "date-time" },
+        "isActive": { "type": "boolean", "description": "If the banner is active." }
+      },
+      "required": ["id", "image", "linkUrl", "isActive"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "type": "object",
+      "description": "Represents a wallet transaction.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the transaction." },
+        "userId": { "type": "string", "description": "ID of the user." },
+        "type": { "type": "string", "description": "Type of transaction (e.g., Deposit, Deduction, Refund)." },
+        "amount": { "type": "number", "description": "Transaction amount." },
+        "transactionDate": { "type": "string", "description": "Date of transaction.", "format": "date-time" },
+        "status": { "type": "string", "description": "Transaction status (e.g., Pending, Completed, Failed)." },
+        "paymentMethod": { "type": "string", "description": "Payment method used." }
+      },
+      "required": ["id", "userId", "type", "amount", "transactionDate", "status", "paymentMethod"]
+    },
+     "WalletTopUpRequest": {
+      "title": "WalletTopUpRequest",
+      "type": "object",
+      "description": "Represents a user's request to add funds to their wallet.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string", "format": "email" },
+        "amount": { "type": "number" },
+        "approvedAmount": { "type": "number" },
+        "senderPhone": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "method": { "type": "string" },
+        "requestDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "rejectionReason": { "type": "string", "description": "Reason for rejecting the top-up request." }
+      },
+      "required": ["id", "userId", "userEmail", "amount", "senderPhone", "method", "requestDate", "status"]
+    },
+    "Notice": {
+        "title": "Notice",
+        "type": "object",
+        "description": "Represents a site-wide notice.",
+        "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "content": { "type": "string" },
+            "image": { "type": "object", "properties": { "src": { "type": "string", "format": "uri" }, "hint": { "type": "string" } } },
+            "linkUrl": { "type": "string", "format": "uri", "description": "Optional URL the notice links to." },
+            "type": { "type": "string", "enum": ["Info", "Popup", "HowToOrder"] },
+            "status": { "type": "string", "enum": ["Active", "Inactive"] }
+        },
+        "required": ["id", "title", "content", "type", "status"]
+    },
+    "PaymentMethod": {
+      "title": "PaymentMethod",
+      "type": "object",
+      "description": "Represents a payment method available for wallet top-up.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "image": { "type": "object", "properties": { "src": { "type": "string", "format": "uri" }, "hint": { "type": "string" } } },
+        "accountNumber": { "type": "string" },
+        "accountType": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "name", "image", "accountNumber", "accountType", "isActive"]
+    },
+    "BalanceTransfer": {
+      "title": "BalanceTransfer",
+      "type": "object",
+      "description": "Represents a balance transfer between two users.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the transfer." },
+        "senderId": { "type": "string", "description": "ID of the sending user." },
+        "recipientId": { "type": "string", "description": "ID of the receiving user." },
+        "amountSent": { "type": "number", "description": "The amount debited from the sender's wallet." },
+        "fee": { "type": "number", "description": "The transaction fee." },
+        "amountReceived": { "type": "number", "description": "The amount credited to the recipient's wallet." },
+        "transferDate": { "type": "string", "description": "Date of the transfer.", "format": "date-time" }
+      },
+      "required": ["id", "senderId", "recipientId", "amountSent", "fee", "amountReceived", "transferDate"]
+    },
+    "PaymentSettings": {
+      "title": "PaymentSettings",
+      "description": "Singleton document storing payment settings for the app.",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["manual", "automatic"]
+        }
+      },
+      "required": ["mode"]
+    }
+  },
+  "auth": {
+    "providers": ["anonymous", "google.com"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles. Path-based ownership ensures only the user can access their own profile data."
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Stores transaction history for a specific user. Path-based ownership ensures only the user can access their transaction details."
+    },
+    "/users/{userId}/coupons/{userCouponId}": {
+      "schema": { "$ref": "#/entities/UserCoupon" },
+      "description": "Stores coupons owned by a specific user. Path-based ownership ensures only the user can access their own coupons, including listing them."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Stores all orders placed by users. Users can only access their own orders, while admins can access all."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Stores categories of top-up cards. Publicly readable."
+    },
+    "/top_up_cards/{topUpCardId}": {
+      "schema": { "$ref": "#/entities/TopUpCard" },
+      "description": "Stores top-up card information. Publicly readable."
+    },
+    "/coupons/{couponId}": {
+      "schema": { "$ref": "#/entities/Coupon" },
+      "description": "Stores coupon information. Publicly readable by users, but only writable by admins."
+    },
+    "/referrals/{referralId}": {
+      "schema": { "$ref": "#/entities/Referral" },
+      "description": "Stores referral information. Admins can read all, users can read referrals where they are the referrer."
+    },
+     "/settings/referral": {
+      "schema": { "$ref": "#/entities/ReferralSettings" },
+      "description": "Singleton document storing referral system settings. Only readable/writable by admins."
+    },
+    "/banners/{bannerId}": {
+      "schema": { "$ref": "#/entities/Banner" },
+      "description": "Stores banner information for promotional purposes."
+    },
+     "/wallet_top_up_requests/{requestId}": {
+      "schema": { "$ref": "#/entities/WalletTopUpRequest" },
+      "description": "Stores user requests to top-up their wallets. Admins can read all requests and update their status. Users can read their own requests."
+    },
+    "/notices/{noticeId}": {
+      "schema": { "$ref": "#/entities/Notice" },
+      "description": "Stores site-wide notices. Publicly readable."
+    },
+    "/payment_methods/{methodId}": {
+      "schema": { "$ref": "#/entities/PaymentMethod" },
+      "description": "Stores available payment methods. Publicly readable."
+    },
+    "/balance_transfers/{transferId}": {
+      "schema": { "$ref": "#/entities/BalanceTransfer" },
+      "description": "Stores all balance transfer records between users."
+    },
+    "/settings/payment": {
+      "schema": { "$ref": "#/entities/PaymentSettings" },
+      "description": "Singleton document for payment settings."
+    }
+  }
+}
+
+    

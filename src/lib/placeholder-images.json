@@ -1,0 +1,82 @@
+{
+  "placeholderImages": [
+    {
+      "id": "banner-1",
+      "description": "Promotional banner for a special offer",
+      "imageUrl": "https://images.unsplash.com/photo-1512106374988-c95f566d39ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwcm9tb3Rpb24lMjBvZmZlcnxlbnwwfHx8fDE3NjA5NTk3MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "promotion offer"
+    },
+    {
+      "id": "banner-2",
+      "description": "Promotional banner announcing new arrivals",
+      "imageUrl": "https://images.unsplash.com/photo-1760654339407-970cede10f46?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxuZXclMjBhcnJpdmFsfGVufDB8fHx8MTc2MDk1OTcxNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "new arrival"
+    },
+    {
+      "id": "banner-3",
+      "description": "Promotional banner for a seasonal sale",
+      "imageUrl": "https://images.unsplash.com/photo-1758347680887-71851355898d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzZWFzb25hbCUyMHNhbGV8ZW58MHx8fHwxNzYwOTU5NzE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "seasonal sale"
+    },
+    {
+      "id": "card-pubg",
+      "description": "PUBG Mobile UC top-up card",
+      "imageUrl": "https://images.unsplash.com/photo-1585483391381-b96dda4fae8f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FtaW5nJTIwY3VycmVuY3l8ZW58MHx8fHwxNzYwOTU5NzE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gaming currency"
+    },
+    {
+      "id": "card-freefire",
+      "description": "Free Fire Diamonds top-up card",
+      "imageUrl": "https://images.unsplash.com/photo-1640860929203-79f5203e5ab2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBjdXJyZW5jeXxlbnwwfHx8fDE3NjA5NTk3MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gaming currency"
+    },
+    {
+      "id": "card-netflix",
+      "description": "Netflix subscription gift card",
+      "imageUrl": "https://images.unsplash.com/photo-1659823300663-93084f1795d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzdHJlYW1pbmclMjBzdWJzY3JpcHRpb258ZW58MHx8fHwxNzYwOTU5NzE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "streaming subscription"
+    },
+    {
+      "id": "card-spotify",
+      "description": "Spotify Premium subscription gift card",
+      "imageUrl": "https://images.unsplash.com/photo-1557511113-84fb922d34d5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtdXNpYyUyMHN0cmVhbWluZ3xlbnwwfHx8fDE3NjA4ODYxNjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "music streaming"
+    },
+    {
+      "id": "card-itunes",
+      "description": "iTunes gift card",
+      "imageUrl": "https://images.unsplash.com/photo-1596558450268-9c27524ba856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhcHAlMjBzdG9yZXxlbnwwfHx8fDE3NjA5NTk3MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "app store"
+    },
+    {
+      "id": "card-googleplay",
+      "description": "Google Play gift card",
+      "imageUrl": "https://images.unsplash.com/photo-1730818875087-182c15e1e7a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhcHAlMjBzdG9yZXxlbnwwfHx8fDE3NjA5NTk3MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "app store"
+    },
+    {
+      "id": "user-avatar",
+      "description": "User profile avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjA5MjcyMzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "payment-bkash",
+      "description": "bKash payment method logo",
+      "imageUrl": "https://images.unsplash.com/photo-1726255294264-c0814b8d3379?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwYXltZW50JTIwbG9nb3xlbnwwfHx8fDE3NjA4NTYyMzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "payment logo"
+    },
+    {
+      "id": "payment-nagad",
+      "description": "Nagad payment method logo",
+      "imageUrl": "https://images.unsplash.com/photo-1596248675029-bd9b0c7dc479?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwYXltZW50JTIwbG9nb3xlbnwwfHx8fDE3NjA4NTYyMzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "payment logo"
+    },
+    {
+      "id": "payment-rocket",
+      "description": "Rocket payment method logo",
+      "imageUrl": "https://images.unsplash.com/photo-1596248675029-bd9b0c7dc479?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwYXltZW50JTIwbG9nb3xlbnwwfHx8fDE3NjA4NTYyMzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "payment logo"
+    }
+  ]
+}
