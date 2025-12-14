@@ -12,7 +12,7 @@ export type User = {
   resellerId?: string; // Unique ID for reseller transactions (separate from uniqueId)
   savedGameUids?: SavedUid[];
   walletBalance?: number;
-  resellerBalance?: number; // Separate balance for reseller purchases
+  resellerBalance?: number; // DEPRECATED: Use walletBalance instead. Kept for backward compatibility.
   coinFund?: number;
   referralCode?: string;
   isVerified?: boolean;

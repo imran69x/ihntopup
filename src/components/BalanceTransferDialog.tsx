@@ -128,16 +128,9 @@ export default function BalanceTransferDialog({
         // Update sender balance
         transaction.update(senderRef, { walletBalance: newSenderBalance });
 
-        // Update recipient balance based on transfer type
-        if (isResellerTransfer) {
-          // Transfer to reseller balance
-          const newRecipientResellerBalance = (recipientData?.resellerBalance || 0) + amountToReceive;
-          transaction.update(recipientRef, { resellerBalance: newRecipientResellerBalance });
-        } else {
-          // Transfer to regular wallet
-          const newRecipientBalance = (recipientData?.walletBalance || 0) + amountToReceive;
-          transaction.update(recipientRef, { walletBalance: newRecipientBalance });
-        }
+        // Update recipient main wallet balance
+        const newRecipientBalance = (recipientData?.walletBalance || 0) + amountToReceive;
+        transaction.update(recipientRef, { walletBalance: newRecipientBalance });
 
         const transferRef = doc(collection(firestore, 'balance_transfers'));
         transaction.set(transferRef, {

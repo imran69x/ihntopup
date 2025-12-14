@@ -74,7 +74,7 @@ export default function ResellerHeader() {
                                     )}
                                     <Link href="/reseller/wallet" className="flex items-center justify-center h-9 px-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-full shadow-md transition-colors gap-2">
                                         <WalletIcon className="h-5 w-5 text-white" />
-                                        <span className='font-bold text-xs sm:text-sm text-white'>{formatCurrency(appUser?.resellerBalance ?? 0)}</span>
+                                        <span className='font-bold text-xs sm:text-sm text-white'>{formatCurrency(appUser?.walletBalance ?? 0)}</span>
                                     </Link>
                                 </div>
 

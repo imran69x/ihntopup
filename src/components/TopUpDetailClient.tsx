@@ -139,10 +139,8 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
     const discount = appliedCoupon ? (appliedCoupon.type === 'Percentage' ? totalPrice * (appliedCoupon.value / 100) : appliedCoupon.value) : 0;
     const finalPrice = Math.max(0, totalPrice - discount);
 
-    // Use appropriate balance based on product type
-    const walletBalance = card.isResellerProduct
-        ? (appUser?.resellerBalance ?? 0)
-        : (appUser?.walletBalance ?? 0);
+    // Use main wallet for all products (reseller and regular)
+    const walletBalance = appUser?.walletBalance ?? 0;
     const hasSufficientBalance = walletBalance >= finalPrice;
 
     const savedUids = appUser?.savedGameUids || [];
@@ -431,18 +429,10 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                 transaction.update(updatedOptions.ref, { options: updatedOptions.data });
             }
 
-            // Deduct from appropriate balance
+            // Deduct from main wallet for all products
             const userRef = doc(firestore, 'users', firebaseUser.uid);
-            if (card.isResellerProduct) {
-                // Reseller product - deduct from resellerBalance
-                const currentResellerBalance = appUser?.resellerBalance || 0;
-                const newResellerBalance = currentResellerBalance - finalPrice;
-                transaction.update(userRef, { resellerBalance: newResellerBalance });
-            } else {
-                // Regular product - deduct from walletBalance
-                const newBalance = walletBalance - finalPrice;
-                transaction.update(userRef, { walletBalance: newBalance });
-            }
+            const newBalance = walletBalance - finalPrice;
+            transaction.update(userRef, { walletBalance: newBalance });
 
             return orderToSave;
         })

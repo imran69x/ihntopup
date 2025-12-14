@@ -152,24 +152,17 @@ export default function WalletRequestsPage() {
                     }
 
                     const userData = userDoc.data() as AppUser;
-                    const isResellerBalance = selectedRequest.isResellerBalance === true;
 
-                    if (isResellerBalance) {
-                        // Reseller balance - NO coins
-                        const newResellerBalance = (userData.resellerBalance || 0) + amountToApprove;
-                        transaction.update(userDocRef, { resellerBalance: newResellerBalance });
-                    } else {
-                        // Regular wallet - with coins
-                        const newBalance = (userData.walletBalance || 0) + amountToApprove;
-                        const currentCoinFund = userData.coinFund || 0;
-                        const coinReward = Math.floor(amountToApprove * 0.10); // 10% coins
-                        const newCoinFund = currentCoinFund + coinReward;
+                    // Add to main wallet with coins for all top-ups
+                    const newBalance = (userData.walletBalance || 0) + amountToApprove;
+                    const currentCoinFund = userData.coinFund || 0;
+                    const coinReward = Math.floor(amountToApprove * 0.10); // 10% coins
+                    const newCoinFund = currentCoinFund + coinReward;
 
-                        transaction.update(userDocRef, {
-                            walletBalance: newBalance,
-                            coinFund: newCoinFund
-                        });
-                    }
+                    transaction.update(userDocRef, {
+                        walletBalance: newBalance,
+                        coinFund: newCoinFund
+                    });
 
                     transaction.update(requestDocRef, { status: newStatus, approvedAmount: amountToApprove });
                 });
@@ -223,11 +216,6 @@ export default function WalletRequestsPage() {
                                 <Badge className={getStatusBadgeVariant(request.status)} variant="outline">
                                     <span className='mr-1'>{getStatusIcon(request.status)}</span> {request.status}
                                 </Badge>
-                                {request.isResellerBalance && (
-                                    <Badge className="bg-purple-100 text-purple-800" variant="outline">
-                                        Reseller Fund
-                                    </Badge>
-                                )}
                             </div>
                         </TableCell>
                         <TableCell className="text-right">

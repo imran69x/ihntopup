@@ -52,7 +52,7 @@ const RequestItem = ({ request, onViewDetails }: { request: WalletTopUpRequest, 
                     <statusInfo.icon className={cn("h-6 w-6", statusInfo.className.replace(/bg-([a-z]+)-100/, 'text-$1-500'))} />
                 </div>
                 <div className="flex-grow">
-                    <p className="font-bold text-sm">Reseller Balance Top-up via {request.method}</p>
+                    <p className="font-bold text-sm">Wallet Top-up via {request.method}</p>
                     <p className="text-xs text-muted-foreground">{new Date(request.requestDate).toLocaleString()}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -85,7 +85,6 @@ export default function ResellerWalletPage() {
         const requestsQuery = query(
             collection(firestore, 'wallet_top_up_requests'),
             where('userId', '==', firebaseUser.uid),
-            where('isResellerBalance', '==', true), // Only reseller balance requests
             orderBy('requestDate', 'desc')
         );
 
@@ -115,7 +114,7 @@ export default function ResellerWalletPage() {
 
     return (
         <div className="container mx-auto px-4 py-6 space-y-6">
-            <h1 className="text-3xl font-bold">Reseller Wallet</h1>
+            <h1 className="text-3xl font-bold">Wallet</h1>
 
             {/* Balance Card */}
             <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-xl">
@@ -123,9 +122,9 @@ export default function ResellerWalletPage() {
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-2">
                             <Wallet className="h-6 w-6" />
-                            <p className="text-sm text-green-100">Reseller Balance</p>
+                            <p className="text-sm text-green-100">Wallet Balance</p>
                         </div>
-                        <p className="text-4xl font-bold tracking-tighter">৳{appUser?.resellerBalance?.toFixed(2) ?? '0.00'}</p>
+                        <p className="text-4xl font-bold tracking-tighter">৳{appUser?.walletBalance?.toFixed(2) ?? '0.00'}</p>
                         <Button
                             onClick={() => setIsAddMoneyOpen(true)}
                             className="mt-4 bg-white text-green-600 hover:bg-green-50"
@@ -144,7 +143,7 @@ export default function ResellerWalletPage() {
                         <ArrowRight className="h-5 w-5 text-primary" />
                         Recent Top-up Requests
                     </CardTitle>
-                    <CardDescription>Your recent reseller balance top-up requests</CardDescription>
+                    <CardDescription>Your recent wallet top-up requests</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
@@ -171,7 +170,7 @@ export default function ResellerWalletPage() {
             <AddMoneyDialog
                 open={isAddMoneyOpen}
                 onOpenChange={setIsAddMoneyOpen}
-                isResellerBalance={true}
+                isResellerBalance={false}
             />
             <TransactionDetailDialog
                 open={!!selectedRequest}

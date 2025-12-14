@@ -16,7 +16,7 @@ import { Badge } from "./ui/badge";
 interface TransactionDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: WalletTopUpRequest;
+  transaction: WalletTopUpRequest | null;
 }
 
 const formatCurrency = (amount: number) => {
