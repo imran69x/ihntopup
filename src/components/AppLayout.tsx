@@ -28,43 +28,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const showFullLayout = !isAdminPage && !isPaymentPage && !isResellerPage;
 
   return (
-    <html lang="en" className="light">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=Righteous&display=swap"
-          rel="stylesheet"
-        />
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#4CAF50" />
-      </head>
-      <body
-        className={cn(
-          'font-body antialiased',
-          'min-h-screen bg-background'
-        )}
-      >
-        <FirebaseProvider {...firebaseServices}>
-          <AuthProvider>
-            {showFullLayout ? (
-              <div className="relative flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1 pb-24 pt-16">{children}</main>
-                <Footer />
-                <NoticePopup />
-              </div>
-            ) : (
-              <main>{children}</main>
-            )}
+    <>
+      <FirebaseProvider {...firebaseServices}>
+        <AuthProvider>
+          {showFullLayout ? (
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1 pb-24 pt-16">{children}</main>
+              <Footer />
+              <NoticePopup />
+            </div>
+          ) : (
+            <main>{children}</main>
+          )}
 
-            {isClient && showFullLayout && <BottomNav />}
-            {showFullLayout && <InstallAppPrompt />}
+          {isClient && showFullLayout && <BottomNav />}
+          {showFullLayout && <InstallAppPrompt />}
 
-            <Toaster />
-          </AuthProvider>
-        </FirebaseProvider>
-      </body>
-    </html>
+          <Toaster />
+        </AuthProvider>
+      </FirebaseProvider>
+    </>
   );
 }

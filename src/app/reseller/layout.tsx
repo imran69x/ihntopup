@@ -3,8 +3,16 @@ import ResellerBottomNav from '@/components/reseller/ResellerBottomNav';
 import '../reseller-panel-bg.css';
 
 export const metadata = {
-    title: 'Reseller Panel - IHN TOPUP',
-    description: 'Exclusive Reseller Panel',
+    title: 'রিসেলার প্যানেল - IHN TopUp',
+    description: 'IHN TopUp রিসেলার প্যানেল। পাইকারি দামে টপ আপ কিনুন এবং আয় করুন।',
+    alternates: {
+        canonical: 'https://ihntopup.shop/reseller',
+    },
+    openGraph: {
+        title: 'রিসেলার প্যানেল - IHN TopUp',
+        description: 'IHN TopUp রিসেলার প্যানেল',
+        url: 'https://ihntopup.shop/reseller',
+    },
 };
 
 export default function ResellerLayout({
