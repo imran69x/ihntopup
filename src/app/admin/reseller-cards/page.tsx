@@ -9,7 +9,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Package, Plus, Edit, Trash2, Loader2, X } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Loader2, X, Eye, EyeOff, Check, Save } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { TopUpCardData, TopUpCardOption } from '@/lib/data';
@@ -52,6 +52,12 @@ export default function AdminResellerCardsPage() {
     const [newOptionCodes, setNewOptionCodes] = useState(''); // Textarea for Unipin codes
     const [additionalCodesPerOption, setAdditionalCodesPerOption] = useState<Record<number, string>>({}); // For adding more codes to existing options
 
+    // New state for improved code management
+    const [singleCodeInput, setSingleCodeInput] = useState<Record<number, string>>({}); // Single code input per option
+    const [expandedCodeView, setExpandedCodeView] = useState<Record<number, boolean>>({}); // Track which option's codes are expanded
+    const [editingCodeIndex, setEditingCodeIndex] = useState<{ optionIndex: number, codeIndex: number } | null>(null);
+    const [editingCodeValue, setEditingCodeValue] = useState('');
+
     const handleAddNew = () => {
         setEditingCard(null);
         resetForm();
@@ -87,7 +93,21 @@ export default function AdminResellerCardsPage() {
         setIsActive(card.isActive);
         setSortOrder(card.sortOrder?.toString() || '0');
         setCardType(card.cardType || 'normal');
-        setOptions(card.options || []);
+
+        // Recalculate availableCodeCount for all options to ensure accuracy
+        const optionsWithUpdatedCounts = (card.options || []).map(option => {
+            if (option.unipinCodes && option.unipinCodes.length > 0) {
+                const actualAvailableCount = option.unipinCodes.filter((c: any) => !c.isUsed).length;
+                return {
+                    ...option,
+                    availableCodeCount: actualAvailableCount,
+                    stockLimit: option.unipinCodes.length // Total codes
+                };
+            }
+            return option;
+        });
+
+        setOptions(optionsWithUpdatedCounts);
         setIsDialogOpen(true);
     };
 
@@ -187,6 +207,145 @@ export default function AdminResellerCardsPage() {
         });
     };
 
+    const handleAddSingleCode = (optionIndex: number) => {
+        const codeValue = singleCodeInput[optionIndex]?.trim();
+
+        if (!codeValue) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Please enter a code' });
+            return;
+        }
+
+        const updatedOptions = [...options];
+        const targetOption = updatedOptions[optionIndex];
+
+        if (!targetOption.unipinCodes) {
+            targetOption.unipinCodes = [];
+        }
+
+        // Check for duplicate
+        const isDuplicate = targetOption.unipinCodes.some((c: any) => c.code === codeValue);
+        if (isDuplicate) {
+            toast({ variant: 'destructive', title: 'Error', description: 'This code already exists' });
+            return;
+        }
+
+        // Add new code
+        targetOption.unipinCodes.push({
+            code: codeValue,
+            isUsed: false
+        });
+
+        // Update counts
+        targetOption.availableCodeCount = (targetOption.availableCodeCount || 0) + 1;
+        targetOption.stockLimit = (targetOption.stockLimit || 0) + 1;
+
+        setOptions(updatedOptions);
+
+        // Clear input
+        setSingleCodeInput(prev => ({
+            ...prev,
+            [optionIndex]: ''
+        }));
+
+        toast({
+            title: 'Success!',
+            description: 'Code added successfully'
+        });
+    };
+
+    const handleDeleteCode = (optionIndex: number, codeIndex: number) => {
+        const updatedOptions = [...options];
+        const targetOption = updatedOptions[optionIndex];
+
+        if (!targetOption.unipinCodes) return;
+
+        const codeToDelete = targetOption.unipinCodes[codeIndex];
+
+        // Prevent deleting used codes
+        if (codeToDelete.isUsed) {
+            toast({
+                variant: 'destructive',
+                title: 'Cannot Delete',
+                description: 'This code has already been used and cannot be deleted'
+            });
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete this code?')) return;
+
+        // Remove code
+        targetOption.unipinCodes.splice(codeIndex, 1);
+
+        // Update counts
+        targetOption.availableCodeCount = Math.max(0, (targetOption.availableCodeCount || 0) - 1);
+        targetOption.stockLimit = Math.max(0, (targetOption.stockLimit || 0) - 1);
+
+        setOptions(updatedOptions);
+
+        toast({
+            title: 'Code Deleted',
+            description: 'The code has been removed successfully'
+        });
+    };
+
+    const handleStartEditCode = (optionIndex: number, codeIndex: number, currentCode: string) => {
+        setEditingCodeIndex({ optionIndex, codeIndex });
+        setEditingCodeValue(currentCode);
+    };
+
+    const handleSaveEditCode = () => {
+        if (!editingCodeIndex) return;
+
+        const trimmedValue = editingCodeValue.trim();
+        if (!trimmedValue) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Code cannot be empty' });
+            return;
+        }
+
+        const { optionIndex, codeIndex } = editingCodeIndex;
+        const updatedOptions = [...options];
+        const targetOption = updatedOptions[optionIndex];
+
+        if (!targetOption.unipinCodes) return;
+
+        // Check for duplicate (excluding current code)
+        const isDuplicate = targetOption.unipinCodes.some((c: any, idx: number) =>
+            idx !== codeIndex && c.code === trimmedValue
+        );
+
+        if (isDuplicate) {
+            toast({ variant: 'destructive', title: 'Error', description: 'This code already exists' });
+            return;
+        }
+
+        // Update code
+        targetOption.unipinCodes[codeIndex] = {
+            ...targetOption.unipinCodes[codeIndex],
+            code: trimmedValue
+        };
+
+        setOptions(updatedOptions);
+        setEditingCodeIndex(null);
+        setEditingCodeValue('');
+
+        toast({
+            title: 'Code Updated',
+            description: 'The code has been updated successfully'
+        });
+    };
+
+    const handleCancelEditCode = () => {
+        setEditingCodeIndex(null);
+        setEditingCodeValue('');
+    };
+
+    const toggleCodeView = (optionIndex: number) => {
+        setExpandedCodeView(prev => ({
+            ...prev,
+            [optionIndex]: !prev[optionIndex]
+        }));
+    };
+
     const handleSave = async () => {
         if (!firestore || !name || !price) {
             toast({ variant: 'destructive', title: 'Error', description: 'Please fill all required fields' });
@@ -216,7 +375,7 @@ export default function AdminResellerCardsPage() {
         }
 
         if (options.length > 0) {
-            // Deep clean options to remove undefined values
+            // Deep clean options to remove undefined values AND recalculate availableCodeCount
             cardData.options = options.map(option => {
                 const cleanOption: any = {
                     name: option.name,
@@ -227,10 +386,18 @@ export default function AdminResellerCardsPage() {
                 if (option.inStock !== undefined) cleanOption.inStock = option.inStock;
                 if (option.stockLimit !== undefined) cleanOption.stockLimit = option.stockLimit;
                 if (option.stockSoldCount !== undefined) cleanOption.stockSoldCount = option.stockSoldCount;
+
+                // For unipin codes, recalculate availableCodeCount from actual codes
                 if (option.unipinCodes && option.unipinCodes.length > 0) {
                     cleanOption.unipinCodes = option.unipinCodes;
+                    // CRITICAL: Always recalculate to ensure accuracy
+                    const actualAvailableCount = option.unipinCodes.filter((c: any) => !c.isUsed).length;
+                    cleanOption.availableCodeCount = actualAvailableCount;
+                    cleanOption.stockLimit = option.unipinCodes.length; // Total codes
+                } else if (option.availableCodeCount !== undefined) {
+                    // For non-unipin options, keep existing count if present
+                    cleanOption.availableCodeCount = option.availableCodeCount;
                 }
-                if (option.availableCodeCount !== undefined) cleanOption.availableCodeCount = option.availableCodeCount;
 
                 return cleanOption;
             });
@@ -507,37 +674,177 @@ export default function AdminResellerCardsPage() {
                                                 </Button>
                                             </div>
 
-                                            {/* Add More Codes section for Unipin Only cards */}
+                                            {/* Improved Code Management for Unipin Only cards */}
                                             {cardType === 'unipin_only' && option.unipinCodes && (
-                                                <div className="p-3 bg-green-50 border-t border-green-200">
-                                                    <Label className="text-xs font-semibold text-green-700 mb-1 block">
-                                                        Add More Codes to this package
-                                                    </Label>
-                                                    <Textarea
-                                                        placeholder="Enter additional codes (one per line)"
-                                                        value={additionalCodesPerOption[index] || ''}
-                                                        onChange={(e) => setAdditionalCodesPerOption(prev => ({
-                                                            ...prev,
-                                                            [index]: e.target.value
-                                                        }))}
-                                                        rows={3}
-                                                        className="font-mono text-xs mb-2"
-                                                    />
-                                                    <div className="flex items-center justify-between">
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {(additionalCodesPerOption[index] || '').split('\n').filter(c => c.trim()).length} new codes
-                                                        </p>
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="default"
-                                                            onClick={() => handleAddMoreCodesToOption(index)}
-                                                            className="h-8"
-                                                        >
-                                                            <Plus className="h-3 w-3 mr-1" />
-                                                            Add Codes
-                                                        </Button>
+                                                <div className="border-t border-muted">
+                                                    {/* Add Single Code Section */}
+                                                    <div className="p-3 bg-blue-50 border-b border-blue-200">
+                                                        <Label className="text-xs font-semibold text-blue-700 mb-2 block">
+                                                            Add Code (One at a time)
+                                                        </Label>
+                                                        <div className="flex gap-2">
+                                                            <Input
+                                                                placeholder="Enter code (e.g., XXXX-XXXX-XXXX)"
+                                                                value={singleCodeInput[index] || ''}
+                                                                onChange={(e) => setSingleCodeInput(prev => ({
+                                                                    ...prev,
+                                                                    [index]: e.target.value
+                                                                }))}
+                                                                className="font-mono text-sm flex-1"
+                                                                onKeyPress={(e) => {
+                                                                    if (e.key === 'Enter') {
+                                                                        e.preventDefault();
+                                                                        handleAddSingleCode(index);
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <Button
+                                                                type="button"
+                                                                size="sm"
+                                                                variant="default"
+                                                                onClick={() => handleAddSingleCode(index)}
+                                                                className="h-10"
+                                                            >
+                                                                <Plus className="h-4 w-4 mr-1" />
+                                                                Add
+                                                            </Button>
+                                                        </div>
                                                     </div>
+
+                                                    {/* View/Manage Existing Codes Section */}
+                                                    {option.unipinCodes.length > 0 && (
+                                                        <div className="p-3 bg-gray-50">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <div>
+                                                                    <Label className="text-sm font-bold text-gray-900 block">
+                                                                        📦 {option.name}
+                                                                    </Label>
+                                                                    <Label className="text-xs font-semibold text-gray-600">
+                                                                        {option.unipinCodes.filter((c: any) => !c.isUsed).length} Available Codes
+                                                                    </Label>
+                                                                </div>
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => toggleCodeView(index)}
+                                                                    className="h-6 text-xs"
+                                                                >
+                                                                    {expandedCodeView[index] ? (
+                                                                        <>
+                                                                            <EyeOff className="h-3 w-3 mr-1" />
+                                                                            Hide Codes
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Eye className="h-3 w-3 mr-1" />
+                                                                            View Codes
+                                                                        </>
+                                                                    )}
+                                                                </Button>
+                                                            </div>
+
+                                                            {expandedCodeView[index] && (
+                                                                <div className="max-h-64 overflow-y-auto border border-gray-200 rounded">
+                                                                    <table className="w-full text-xs">
+                                                                        <thead className="bg-gray-100 sticky top-0">
+                                                                            <tr>
+                                                                                <th className="text-left p-2 font-semibold">#</th>
+                                                                                <th className="text-left p-2 font-semibold">Code</th>
+                                                                                <th className="text-right p-2 font-semibold">Actions</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {option.unipinCodes
+                                                                                .map((codeObj: any, codeIdx: number) => ({ codeObj, originalIdx: codeIdx }))
+                                                                                .filter(({ codeObj }: any) => !codeObj.isUsed) // Only show available codes
+                                                                                .map(({ codeObj, originalIdx }: any, displayIdx: number) => {
+                                                                                    const isEditing = editingCodeIndex?.optionIndex === index && editingCodeIndex?.codeIndex === originalIdx;
+
+                                                                                    return (
+                                                                                        <tr key={originalIdx} className="border-b border-gray-100 hover:bg-gray-50">
+                                                                                            <td className="p-2 text-gray-500">{displayIdx + 1}</td>
+                                                                                            <td className="p-2 font-mono">
+                                                                                                {isEditing ? (
+                                                                                                    <Input
+                                                                                                        value={editingCodeValue}
+                                                                                                        onChange={(e) => setEditingCodeValue(e.target.value)}
+                                                                                                        className="h-7 text-xs font-mono"
+                                                                                                        autoFocus
+                                                                                                        onKeyPress={(e) => {
+                                                                                                            if (e.key === 'Enter') {
+                                                                                                                e.preventDefault();
+                                                                                                                handleSaveEditCode();
+                                                                                                            } else if (e.key === 'Escape') {
+                                                                                                                handleCancelEditCode();
+                                                                                                            }
+                                                                                                        }}
+                                                                                                    />
+                                                                                                ) : (
+                                                                                                    <span className="text-green-700 font-medium">
+                                                                                                        {codeObj.code}
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td className="p-2 text-right">
+                                                                                                {isEditing ? (
+                                                                                                    <div className="flex gap-1 justify-end">
+                                                                                                        <Button
+                                                                                                            type="button"
+                                                                                                            size="sm"
+                                                                                                            variant="ghost"
+                                                                                                            onClick={handleSaveEditCode}
+                                                                                                            className="h-6 w-6 p-0"
+                                                                                                        >
+                                                                                                            <Check className="h-3 w-3 text-green-600" />
+                                                                                                        </Button>
+                                                                                                        <Button
+                                                                                                            type="button"
+                                                                                                            size="sm"
+                                                                                                            variant="ghost"
+                                                                                                            onClick={handleCancelEditCode}
+                                                                                                            className="h-6 w-6 p-0"
+                                                                                                        >
+                                                                                                            <X className="h-3 w-3 text-red-600" />
+                                                                                                        </Button>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <div className="flex gap-1 justify-end">
+                                                                                                        <Button
+                                                                                                            type="button"
+                                                                                                            size="sm"
+                                                                                                            variant="ghost"
+                                                                                                            onClick={() => handleStartEditCode(index, originalIdx, codeObj.code)}
+                                                                                                            className="h-6 w-6 p-0"
+                                                                                                        >
+                                                                                                            <Edit className="h-3 w-3 text-blue-600" />
+                                                                                                        </Button>
+                                                                                                        <Button
+                                                                                                            type="button"
+                                                                                                            size="sm"
+                                                                                                            variant="ghost"
+                                                                                                            onClick={() => handleDeleteCode(index, originalIdx)}
+                                                                                                            className="h-6 w-6 p-0"
+                                                                                                        >
+                                                                                                            <Trash2 className="h-3 w-3 text-red-600" />
+                                                                                                        </Button>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    );
+                                                                                })}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    {option.unipinCodes.filter((c: any) => !c.isUsed).length === 0 && (
+                                                                        <div className="p-4 text-center text-gray-500 text-xs">
+                                                                            No available codes. All codes have been used.
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
