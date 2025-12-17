@@ -28,6 +28,18 @@ export default function TopUpCard({ card }: TopUpCardProps) {
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
               data-ai-hint={card.image?.hint}
             />
+            {/* Coin Badge for Free Products */}
+            {card.purchaseType === 'Free' && (
+              <div className="absolute top-2 right-2 bg-white rounded-full p-0.5 shadow-lg">
+                <Image
+                  src="/coin-icon.png"
+                  alt="Coin"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8"
+                />
+              </div>
+            )}
           </div>
         </CardContent>
         <div className="p-2 text-center flex-grow flex items-center justify-center bg-card">

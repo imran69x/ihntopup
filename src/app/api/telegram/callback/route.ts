@@ -150,15 +150,53 @@ export async function POST(request: NextRequest) {
                     return NextResponse.json({ success: false, error: 'Already processed' });
                 }
 
-                // Update order status with metadata
-                await orderRef.update({
-                    status: newStatus,
-                    processedBy: adminVerification.userId,
-                    processedByTelegramId: telegramUserId,
-                    processedAt: new Date().toISOString(),
-                });
+                // Handle coin rewards for completed orders using transaction (non-reseller only)
+                if (newStatus === 'Completed') {
+                    // Use runTransaction to ensure atomicity
+                    await db.runTransaction(async (transaction) => {
+                        const userRef = db.collection('users').doc(orderData.userId);
+                        const userDoc = await transaction.get(userRef);
 
-                console.log('✅ Order status updated successfully');
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            const isResellerProduct = orderData.isResellerProduct || false;
+
+                            // Calculate coin reward (10% of order amount)
+                            if (!isResellerProduct) {
+                                const coinReward = (orderData.totalAmount || 0) * 0.1;
+                                const currentCoinFund = userData?.coinFund || 0;
+                                const newCoinFund = currentCoinFund + coinReward;
+
+                                // Update user's coin fund within transaction
+                                transaction.update(userRef, {
+                                    coinFund: newCoinFund
+                                });
+
+                                console.log(`✅ Added ${coinReward} coins to user ${orderData.userId}`);
+                            }
+                        }
+
+                        // Update order status within same transaction
+                        transaction.update(orderRef, {
+                            status: newStatus,
+                            processedBy: adminVerification.userId,
+                            processedByTelegramId: telegramUserId,
+                            processedAt: new Date().toISOString(),
+                        });
+                    });
+
+                    console.log('✅ Order status updated successfully with coin reward');
+                } else {
+                    // For non-Completed statuses, just update order
+                    await orderRef.update({
+                        status: newStatus,
+                        processedBy: adminVerification.userId,
+                        processedByTelegramId: telegramUserId,
+                        processedAt: new Date().toISOString(),
+                    });
+
+                    console.log('✅ Order status updated successfully');
+                }
 
                 // Send success callback
                 const statusEmoji = ({

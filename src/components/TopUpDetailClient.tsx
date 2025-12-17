@@ -718,7 +718,22 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                                         >
                                             <div className="flex justify-between items-center w-full">
                                                 <span className="font-medium text-xs break-words">{option.name}</span>
-                                                <span className="font-bold text-primary text-xs ml-2 whitespace-nowrap">৳{option.price}</span>
+                                                <div className="flex items-center gap-1 ml-2">
+                                                    {card.purchaseType === 'Free' ? (
+                                                        <>
+                                                            <Image
+                                                                src="/coin-icon.png"
+                                                                alt="Coin"
+                                                                width={16}
+                                                                height={16}
+                                                                className="w-4 h-4"
+                                                            />
+                                                            <span className="font-bold text-primary text-xs whitespace-nowrap">{option.price}</span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="font-bold text-primary text-xs whitespace-nowrap">৳{option.price}</span>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="mt-1">
                                                 {isDisabled ? (
