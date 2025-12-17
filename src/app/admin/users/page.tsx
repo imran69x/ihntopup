@@ -88,6 +88,7 @@ export default function UsersPage() {
   const [resellerBalance, setResellerBalance] = React.useState<number | string>(''); // Add reseller balance
   const [coinFund, setCoinFund] = React.useState<number | string>('');
   const [isAdmin, setIsAdmin] = React.useState(false);
+  const [telegramUserId, setTelegramUserId] = React.useState(''); // Add Telegram User ID
   const [isBanned, setIsBanned] = React.useState(false);
   const [isReseller, setIsReseller] = React.useState(false);
 
@@ -115,6 +116,7 @@ export default function UsersPage() {
     setResellerBalance(user.resellerBalance ?? 0); // Load reseller balance
     setCoinFund(user.coinFund ?? 0);
     setIsAdmin(user.isAdmin ?? false);
+    setTelegramUserId(user.telegramUserId ?? ''); // Load Telegram User ID
     setIsBanned(user.isBanned ?? false);
     setIsReseller(user.isReseller ?? false);
     setIsEditOpen(true);
@@ -151,6 +153,7 @@ export default function UsersPage() {
       resellerBalance: resellerBalanceAsNumber, // Save reseller balance
       coinFund: coinFundAsNumber,
       isAdmin,
+      telegramUserId: telegramUserId.trim() || null, // Save Telegram User ID (null if empty)
       isBanned,
       isReseller
     });
@@ -347,6 +350,9 @@ export default function UsersPage() {
             <DetailRow label="User ID" value={viewingUser?.id} isMono={true} />
             <DetailRow label="Status" value={<Badge variant={viewingUser?.isVerified ? "default" : "destructive"}>{viewingUser?.isVerified ? "Verified" : "Unverified"}</Badge>} />
             <DetailRow label="Admin" value={<Badge variant={viewingUser?.isAdmin ? "default" : "secondary"}>{viewingUser?.isAdmin ? "Yes" : "No"}</Badge>} />
+            {viewingUser?.isAdmin && viewingUser?.telegramUserId && (
+              <DetailRow label="Telegram User ID" value={viewingUser.telegramUserId} isMono={true} />
+            )}
             <DetailRow label="Banned" value={<Badge variant={viewingUser?.isBanned ? "destructive" : "secondary"}>{viewingUser?.isBanned ? "Yes" : "No"}</Badge>} />
           </div>
           <DialogFooter>
@@ -455,21 +461,35 @@ export default function UsersPage() {
                 </Label>
               </div>
             </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="isReseller" className="text-right">
-              Reseller Role
-            </Label>
-            <div className="col-span-3 flex items-center space-x-2">
-              <Switch
-                id="isReseller"
-                checked={isReseller}
-                onCheckedChange={setIsReseller}
-              />
-              <Label htmlFor="isReseller" className="cursor-pointer">
-                {isReseller ? "Yes" : "No"}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="isReseller" className="text-right">
+                Reseller Role
               </Label>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Switch
+                  id="isReseller"
+                  checked={isReseller}
+                  onCheckedChange={setIsReseller}
+                />
+                <Label htmlFor="isReseller" className="cursor-pointer">
+                  {isReseller ? "Yes" : "No"}
+                </Label>
+              </div>
             </div>
+            {isAdmin && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="telegramUserId" className="text-right">
+                  Telegram User ID
+                </Label>
+                <Input
+                  id="telegramUserId"
+                  value={telegramUserId}
+                  onChange={(e) => setTelegramUserId(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Enter Telegram user ID for order management"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>বাতিল</Button>

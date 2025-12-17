@@ -17,6 +17,7 @@ export type User = {
   referralCode?: string;
   isVerified?: boolean;
   isAdmin?: boolean;
+  telegramUserId?: string; // Telegram user ID for admin verification in bot callbacks
   isBanned?: boolean;
   isReseller?: boolean;
   photoURL?: string;
@@ -115,6 +116,11 @@ export type Order = {
   }
   isResellerProduct?: boolean; // Added this field
   allocatedCodes?: string[]; // Unipin codes assigned to this order
+  // Telegram processing metadata
+  processedBy?: string; // Website userId of admin who processed via Telegram
+  processedByTelegramId?: string; // Telegram user ID of processor
+  processedAt?: string; // ISO timestamp of when order was processed
+  telegramMessageId?: number; // Telegram message ID for editing
 };
 
 export type WalletTopUpRequest = {

@@ -15,7 +15,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFirestore, errorEmitter, FirestorePermissionError, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, where, getDocs, limit, getCountFromServer, doc, runTransaction } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, getCountFromServer, doc, runTransaction, updateDoc } from 'firebase/firestore';
 import { ProcessingLoader } from './ui/processing-loader';
 import { RedirectLoader } from './ui/redirect-loader';
 import { Badge } from './ui/badge';
@@ -438,7 +438,13 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
         })
             .then(async (finalOrderData) => {
                 if (finalOrderData) {
-                    sendOrderAlert(finalOrderData);
+                    // Send Telegram alert and store message ID
+                    const telegramResponse = await sendOrderAlert(finalOrderData);
+                    if (telegramResponse.success && telegramResponse.messageId && firestore) {
+                        // Update order with Telegram message ID for future editing
+                        const orderRef = doc(firestore, 'orders', finalOrderData.id);
+                        await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+                    }
                 }
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 toast({
@@ -542,7 +548,13 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
         })
             .then(async (finalOrderData) => {
                 if (finalOrderData) {
-                    sendOrderAlert(finalOrderData);
+                    // Send Telegram alert and store message ID
+                    const telegramResponse = await sendOrderAlert(finalOrderData);
+                    if (telegramResponse.success && telegramResponse.messageId && firestore) {
+                        // Update order with Telegram message ID for future editing
+                        const orderRef = doc(firestore, 'orders', finalOrderData.id);
+                        await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+                    }
                 }
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 toast({

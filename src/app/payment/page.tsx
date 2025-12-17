@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo, Suspense, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, addDoc, runTransaction, doc } from "firebase/firestore";
+import { collection, query, addDoc, runTransaction, doc, updateDoc, setDoc } from "firebase/firestore";
 import type { PaymentMethod, Order } from "@/lib/data";
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -179,14 +179,27 @@ function PaymentPageComponent() {
       if (paymentInfo.type === 'productPurchase') {
 
         await runTransaction(firestore, async (transaction) => {
+          const orderRefs: { id: string; data: any }[] = [];
+
           for (const item of paymentInfo.cartItems) {
             const orderData = createOrderObject(item, data);
             const newOrderRef = doc(collection(firestore, "orders"));
 
             const finalOrderData = { ...orderData, id: newOrderRef.id, totalAmount: paymentInfo.amount };
             transaction.set(newOrderRef, finalOrderData);
+            orderRefs.push({ id: newOrderRef.id, data: finalOrderData });
+          }
 
-            sendOrderAlert(finalOrderData);
+          return orderRefs;
+        }).then(async (orderRefs) => {
+          // Send Telegram alerts after transaction completes
+          for (const order of orderRefs) {
+            const telegramResponse = await sendOrderAlert(order.data);
+            if (telegramResponse.success && telegramResponse.messageId) {
+              // Update order with Telegram message ID
+              const orderRef = doc(firestore, 'orders', order.id);
+              await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+            }
           }
         });
 
@@ -201,16 +214,25 @@ function PaymentPageComponent() {
           id: newRequestRef.id,
           userId: firebaseUser.uid,
           userEmail: appUser?.email || 'N/A',
+          userName: appUser?.name || 'Unknown',
           amount: paymentInfo.amount,
           senderPhone: data.senderPhone,
           transactionId: data.transactionId || '',
           method: selectedMethod.name,
           requestDate: new Date().toISOString(),
           status: 'Pending' as const,
-          isResellerBalance: isResellerBalance // Add flag for reseller balance
+          isResellerBalance: isResellerBalance
         };
-        await addDoc(requestsCollection, requestData);
-        sendWalletRequestAlert(requestData);
+
+        // Use setDoc with the generated ID
+        await setDoc(newRequestRef, requestData);
+
+        // Send Telegram alert and save message ID
+        const telegramResponse = await sendWalletRequestAlert(requestData, isResellerBalance);
+        if (telegramResponse.success && telegramResponse.messageId) {
+          await updateDoc(newRequestRef, { telegramMessageId: telegramResponse.messageId });
+        }
+
         const message = isResellerBalance
           ? 'আপনার রিসেলার ব্যালেন্স টপ-আপ অনুরোধ পর্যালোচনার জন্য জমা দেওয়া হয়েছে।'
           : 'আপনার ওয়ালেট টপ-আপ অনুরোধ পর্যালোচনার জন্য জমা দেওয়া হয়েছে।';
