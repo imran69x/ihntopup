@@ -89,6 +89,7 @@ export type BannerData = {
 
 export type Order = {
   id: string;
+  orderId?: number; // Sequential order ID (100, 101, 102...)
   userId: string;
   userName: string;
   topUpCardId: string;

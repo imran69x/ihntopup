@@ -82,7 +82,7 @@ export default function OrderDetailDialog({ open, onOpenChange, order }: OrderDe
                 <Separator />
 
                 <div className="grid gap-3 py-4 text-sm max-h-[60vh] overflow-y-auto">
-                    <DetailRow icon={Tag} label="Order ID" value={<span className="font-mono">{order.id}</span>} />
+                    <DetailRow icon={Tag} label="Order ID" value={<span className="font-mono">#{order.orderId || 'N/A'}</span>} />
                     <DetailRow icon={Calendar} label="Date" value={new Date(order.orderDate).toLocaleString()} />
 
                     {/* UNIPIN CODES SECTION - MOVED TO TOP */}

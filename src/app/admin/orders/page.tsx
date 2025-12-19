@@ -348,7 +348,8 @@ export default function OrdersPage() {
           order.productOption?.toLowerCase().includes(lowercasedSearchTerm) ||
           order.gameUid.toLowerCase().includes(lowercasedSearchTerm) ||
           order.userName?.toLowerCase().includes(lowercasedSearchTerm) ||
-          (user && user.email?.toLowerCase().includes(lowercasedSearchTerm))
+          (user && user.email?.toLowerCase().includes(lowercasedSearchTerm)) ||
+          (order.orderId && order.orderId.toString().includes(searchTerm))
         );
       });
     }
@@ -382,7 +383,7 @@ export default function OrdersPage() {
               <TableCell>
                 <div className="font-medium">{order.productName} - {order.productOption}</div>
                 <div className="text-sm text-muted-foreground">
-                  {order.gameUid}
+                  Order #{order.orderId || 'N/A'} • {order.gameUid}
                 </div>
               </TableCell>
               <TableCell className="text-right">
@@ -497,7 +498,7 @@ export default function OrdersPage() {
           <DialogHeader>
             <DialogTitle>অর্ডারের বিস্তারিত</DialogTitle>
             <DialogDescription>
-              অর্ডার আইডি: <span className='font-mono'>{selectedOrder?.id}</span>
+              Order #{selectedOrder?.orderId || 'N/A'} • Firestore ID: <span className='font-mono'>{selectedOrder?.id}</span>
             </DialogDescription>
           </DialogHeader>
           {selectedOrder && (

@@ -181,24 +181,52 @@ function PaymentPageComponent() {
         await runTransaction(firestore, async (transaction) => {
           const orderRefs: { id: string; data: any }[] = [];
 
-          for (const item of paymentInfo.cartItems) {
+          // Get next sequential order ID
+          const counterRef = doc(firestore, 'counters', 'orderIdCounter');
+          const counterSnap = await transaction.get(counterRef);
+          let baseOrderId = 100; // Start from 100
+
+          if (counterSnap.exists()) {
+            baseOrderId = (counterSnap.data().currentId || 99) + 1;
+          }
+
+          for (let i = 0; i < paymentInfo.cartItems.length; i++) {
+            const item = paymentInfo.cartItems[i];
             const orderData = createOrderObject(item, data);
             const newOrderRef = doc(collection(firestore, "orders"));
+            const currentOrderId = baseOrderId + i;
 
-            const finalOrderData = { ...orderData, id: newOrderRef.id, totalAmount: paymentInfo.amount };
+            const finalOrderData = {
+              ...orderData,
+              id: newOrderRef.id,
+              orderId: currentOrderId,
+              totalAmount: paymentInfo.amount
+            };
             transaction.set(newOrderRef, finalOrderData);
             orderRefs.push({ id: newOrderRef.id, data: finalOrderData });
           }
 
+          // Update counter to the last used order ID
+          const lastOrderId = baseOrderId + paymentInfo.cartItems.length - 1;
+          if (counterSnap.exists()) {
+            transaction.update(counterRef, { currentId: lastOrderId });
+          } else {
+            transaction.set(counterRef, { currentId: lastOrderId });
+          }
+
           return orderRefs;
         }).then(async (orderRefs) => {
-          // Send Telegram alerts after transaction completes
+          // Send Telegram alerts after transaction completes (non-blocking)
           for (const order of orderRefs) {
-            const telegramResponse = await sendOrderAlert(order.data);
-            if (telegramResponse.success && telegramResponse.messageId) {
-              // Update order with Telegram message ID
-              const orderRef = doc(firestore, 'orders', order.id);
-              await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+            try {
+              const telegramResponse = await sendOrderAlert(order.data);
+              if (telegramResponse.success && telegramResponse.messageId) {
+                // Update order with Telegram message ID
+                const orderRef = doc(firestore, 'orders', order.id);
+                await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+              }
+            } catch (error) {
+              console.log('Telegram notification failed (non-critical):', error);
             }
           }
         });
@@ -227,10 +255,14 @@ function PaymentPageComponent() {
         // Use setDoc with the generated ID
         await setDoc(newRequestRef, requestData);
 
-        // Send Telegram alert and save message ID
-        const telegramResponse = await sendWalletRequestAlert(requestData, isResellerBalance);
-        if (telegramResponse.success && telegramResponse.messageId) {
-          await updateDoc(newRequestRef, { telegramMessageId: telegramResponse.messageId });
+        // Send Telegram alert and save message ID (non-blocking)
+        try {
+          const telegramResponse = await sendWalletRequestAlert(requestData, isResellerBalance);
+          if (telegramResponse.success && telegramResponse.messageId) {
+            await updateDoc(newRequestRef, { telegramMessageId: telegramResponse.messageId });
+          }
+        } catch (error) {
+          console.log('Telegram notification failed (non-critical):', error);
         }
 
         const message = isResellerBalance

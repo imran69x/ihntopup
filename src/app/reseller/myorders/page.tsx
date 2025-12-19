@@ -47,7 +47,7 @@ const OrderItem = ({ order, onViewDetails }: { order: Order, onViewDetails: (ord
                     <div className="flex-grow">
                         <p className="font-bold">{order.productName || order.topUpCardId}</p>
                         <p className="text-sm text-muted-foreground">{order.productOption}</p>
-                        <p className="text-xs text-muted-foreground">ID: <span className='font-mono'>{order.id.toLowerCase()}</span></p>
+                        <p className="text-xs text-muted-foreground">Order #<span className='font-mono'>{order.orderId || 'N/A'}</span></p>
                         <p className="text-sm text-muted-foreground">UID: {order.gameUid}</p>
                         <p className="text-xs text-muted-foreground">{new Date(order.orderDate).toLocaleString()}</p>
                     </div>
@@ -116,6 +116,7 @@ export default function ResellerOrdersPage() {
         if (activeTab !== 'All') filtered = filtered.filter(order => order.status === activeTab);
         if (searchTerm) {
             filtered = filtered.filter(order =>
+                (order.orderId && order.orderId.toString().includes(searchTerm)) ||
                 order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (order.productName && order.productName.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (order.gameUid && order.gameUid.toLowerCase().includes(searchTerm.toLowerCase()))

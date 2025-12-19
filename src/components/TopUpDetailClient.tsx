@@ -415,11 +415,28 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                 }
             }
 
+            // Get next sequential order ID
+            const counterRef = doc(firestore, 'counters', 'orderIdCounter');
+            const counterSnap = await transaction.get(counterRef);
+            let nextOrderId = 100; // Start from 100
+
+            if (counterSnap.exists()) {
+                nextOrderId = (counterSnap.data().currentId || 99) + 1;
+            }
+
+            // Update counter
+            if (counterSnap.exists()) {
+                transaction.update(counterRef, { currentId: nextOrderId });
+            } else {
+                transaction.set(counterRef, { currentId: nextOrderId });
+            }
+
             // NOW DO ALL WRITES
             const orderRef = doc(collection(firestore, 'orders'));
             const orderToSave = {
                 ...newOrderData,
                 id: orderRef.id,
+                orderId: nextOrderId, // Add sequential order ID
                 ...(allocatedCodes.length > 0 && { allocatedCodes }) // Add allocated codes if any
             };
             transaction.set(orderRef, orderToSave);
@@ -438,12 +455,16 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
         })
             .then(async (finalOrderData) => {
                 if (finalOrderData) {
-                    // Send Telegram alert and store message ID
-                    const telegramResponse = await sendOrderAlert(finalOrderData);
-                    if (telegramResponse.success && telegramResponse.messageId && firestore) {
-                        // Update order with Telegram message ID for future editing
-                        const orderRef = doc(firestore, 'orders', finalOrderData.id);
-                        await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+                    // Send Telegram alert and store message ID (non-blocking)
+                    try {
+                        const telegramResponse = await sendOrderAlert(finalOrderData);
+                        if (telegramResponse.success && telegramResponse.messageId && firestore) {
+                            // Update order with Telegram message ID for future editing
+                            const orderRef = doc(firestore, 'orders', finalOrderData.id);
+                            await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+                        }
+                    } catch (error) {
+                        console.log('Telegram notification failed (non-critical):', error);
                     }
                 }
                 await new Promise(resolve => setTimeout(resolve, 1500));
@@ -530,9 +551,25 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                 }
             }
 
+            // Get next sequential order ID
+            const counterRef = doc(firestore, 'counters', 'orderIdCounter');
+            const counterSnap = await transaction.get(counterRef);
+            let nextOrderId = 100; // Start from 100
+
+            if (counterSnap.exists()) {
+                nextOrderId = (counterSnap.data().currentId || 99) + 1;
+            }
+
+            // Update counter
+            if (counterSnap.exists()) {
+                transaction.update(counterRef, { currentId: nextOrderId });
+            } else {
+                transaction.set(counterRef, { currentId: nextOrderId });
+            }
+
             // NOW DO ALL WRITES
             const orderRef = doc(collection(firestore, 'orders'));
-            transaction.set(orderRef, { ...newOrderData, id: orderRef.id });
+            transaction.set(orderRef, { ...newOrderData, id: orderRef.id, orderId: nextOrderId });
 
             // Update stock if needed
             if (updatedOptions) {
@@ -544,16 +581,20 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
             const userRef = doc(firestore, 'users', firebaseUser.uid);
             transaction.update(userRef, { coinFund: newCoinBalance });
 
-            return { ...newOrderData, id: orderRef.id };
+            return { ...newOrderData, id: orderRef.id, orderId: nextOrderId };
         })
             .then(async (finalOrderData) => {
                 if (finalOrderData) {
-                    // Send Telegram alert and store message ID
-                    const telegramResponse = await sendOrderAlert(finalOrderData);
-                    if (telegramResponse.success && telegramResponse.messageId && firestore) {
-                        // Update order with Telegram message ID for future editing
-                        const orderRef = doc(firestore, 'orders', finalOrderData.id);
-                        await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+                    // Send Telegram alert and store message ID (non-blocking)
+                    try {
+                        const telegramResponse = await sendOrderAlert(finalOrderData);
+                        if (telegramResponse.success && telegramResponse.messageId && firestore) {
+                            // Update order with Telegram message ID for future editing
+                            const orderRef = doc(firestore, 'orders', finalOrderData.id);
+                            await updateDoc(orderRef, { telegramMessageId: telegramResponse.messageId });
+                        }
+                    } catch (error) {
+                        console.log('Telegram notification failed (non-critical):', error);
                     }
                 }
                 await new Promise(resolve => setTimeout(resolve, 1500));

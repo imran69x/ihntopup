@@ -146,6 +146,16 @@ service cloud.firestore {
       allow list: if isAdmin();
     }
 
+    // =================================================================================
+    // Counter System (for sequential order IDs)
+    // =================================================================================
+    
+    match /counters/{counterId} {
+      // Allow authenticated users to read and update counter documents
+      // This is needed for generating sequential order IDs
+      allow read, update, create: if isUserAuthenticated();
+    }
+
 
     // Fallback: Deny everything else by default (implicit in Firestore, but good practice to be aware)
   }
