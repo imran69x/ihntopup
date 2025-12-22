@@ -52,18 +52,18 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 47% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 47% 14%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 47% 14%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 120 65% 35%;
+    --primary: 120 65% 40%;
     --primary-foreground: 120 25% 95%;
-    --gradient-to: 120 65% 25%;
+    --gradient-to: 120 65% 30%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -77,9 +77,9 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 120 65% 35%;
+    --border: 217.2 32.6% 20%;
+    --input: 217.2 32.6% 20%;
+    --ring: 120 65% 40%;
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -108,8 +108,7 @@
   }
 
   body {
-    @apply text-foreground;
-    background: transparent !important;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -146,11 +145,20 @@
 .animate-pulse-float {
   animation: pulse-float 3s ease-in-out infinite;
 }
+
 /* Animated Green Background */
 @keyframes gradient-animation {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animated-green-background {

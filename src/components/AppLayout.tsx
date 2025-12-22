@@ -12,6 +12,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { initializeFirebase } from '@/firebase/index';
 import NoticePopup from './NoticePopup';
+import { ThemeProvider } from './ThemeProvider';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -30,23 +31,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <FirebaseProvider {...firebaseServices}>
-        <AuthProvider>
-          {showFullLayout ? (
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1 pb-24 pt-16">{children}</main>
-              <Footer />
-              <NoticePopup />
-            </div>
-          ) : (
-            <main>{children}</main>
-          )}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <AuthProvider>
+            {showFullLayout ? (
+              <div className="relative flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1 pb-24 pt-16">{children}</main>
+                <Footer />
+                <NoticePopup />
+              </div>
+            ) : (
+              <main>{children}</main>
+            )}
 
-          {isClient && showFullLayout && <BottomNav />}
-          {showFullLayout && <InstallAppPrompt />}
+            {isClient && showFullLayout && <BottomNav />}
+            {showFullLayout && <InstallAppPrompt />}
 
-          <Toaster />
-        </AuthProvider>
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
       </FirebaseProvider>
     </>
   );

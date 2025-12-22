@@ -11,6 +11,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import ProfileSidebar from './ProfileSidebar';
+import { DarkModeToggle } from '../DarkModeToggle';
 
 const formatCurrency = (amount: number) => {
   return '৳' + new Intl.NumberFormat('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
@@ -105,6 +106,7 @@ export default function Header() {
                   <Image src="/coin-icon.png" alt="Coin" width={16} height={16} className="w-4 h-4" />
                   <span className='font-bold text-xs sm:text-sm text-white'>{(appUser?.coinFund ?? 0).toFixed(0)}</span>
                 </div>
+                <DarkModeToggle />
                 <Button variant="ghost" onClick={() => setIsSidebarOpen(true)} className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-white shadow-md p-0">
                   <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
                     {appUser?.photoURL && <AvatarImage src={appUser.photoURL} alt={appUser.name || 'User'} />}
@@ -114,9 +116,12 @@ export default function Header() {
               </>
 
             ) : !loading && isClient ? (
-              <Button asChild>
-                <Link href="/login">Login</Link>
-              </Button>
+              <>
+                <DarkModeToggle />
+                <Button asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+              </>
             ) : null}
           </div>
         </div>
