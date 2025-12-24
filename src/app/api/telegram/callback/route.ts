@@ -228,6 +228,11 @@ export async function POST(request: NextRequest) {
 
                 const [, action, requestId] = parts; // action: "Approved" or "Rejected"
 
+                console.log('🔍 Wallet callback received:');
+                console.log('  - Action:', action);
+                console.log('  - Request ID:', requestId);
+                console.log('  - Telegram User ID:', telegramUserId);
+
                 // Verify admin
                 const adminVerification = await verifyAdmin(telegramUserId);
                 if (!adminVerification.isAdmin) {
@@ -241,12 +246,35 @@ export async function POST(request: NextRequest) {
 
                 // Get wallet request document
                 const requestRef = db.collection('wallet_top_up_requests').doc(requestId);
+                console.log('📂 Looking for document with ID:', requestId);
                 const requestDoc = await requestRef.get();
 
                 if (!requestDoc.exists) {
+                    console.error('❌ Request document not found!');
+                    console.error('  - Searched for ID:', requestId);
+                    console.error('  - Collection: wallet_top_up_requests');
+
+                    // Try to list all pending requests to debug
+                    try {
+                        const allRequests = await db.collection('wallet_top_up_requests')
+                            .where('status', '==', 'Pending')
+                            .limit(10)
+                            .get();
+                        console.error('  - Found', allRequests.size, 'pending requests in database');
+                        allRequests.forEach(doc => {
+                            console.error('    • Document ID:', doc.id, '| Stored ID field:', doc.data().id);
+                        });
+                    } catch (debugError) {
+                        console.error('Debug query failed:', debugError);
+                    }
+
                     await answerCallbackQuery(callbackQuery.id, '❌ Request not found', true);
                     return NextResponse.json({ success: false, error: 'Request not found' });
                 }
+
+                console.log('✅ Request document found!');
+                console.log('  - Document ID:', requestDoc.id);
+                console.log('  - Status:', requestDoc.data()?.status);
 
                 const requestData = requestDoc.data();
 
