@@ -8,7 +8,8 @@ import {
   Search,
   Loader2,
   Eye,
-  Edit
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -94,6 +95,7 @@ export default function UsersPage() {
 
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
   const [userToDelete, setUserToDelete] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const firestore = useFirestore();
@@ -167,13 +169,57 @@ export default function UsersPage() {
     setIsDeleteAlertOpen(true);
   };
 
-  const confirmDelete = () => {
-    // In a real app, you'd probably soft delete or have a confirmation
-    if (!userToDelete) return;
-    console.log("Deleting user", userToDelete);
-    toast({ variant: 'destructive', title: "ব্যবহারকারী মুছে ফেলা হয়েছে", description: `ব্যবহারকারী আইডি ${userToDelete} মুছে ফেলা হয়েছে।` });
-    setUserToDelete(null);
-    setIsDeleteAlertOpen(false);
+  const confirmDelete = async () => {
+    if (!userToDelete || isDeleting) return;
+
+    setIsDeleting(true);
+
+    try {
+      // Get the Firebase auth token
+      const { getAuth } = await import('firebase/auth');
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
+      const token = await user.getIdToken();
+
+      // Call the delete API
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId: userToDelete })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete user');
+      }
+
+      toast({
+        title: "ব্যবহারকারী মুছে ফেলা হয়েছে",
+        description: "ব্যবহারকারী সফলভাবে সিস্টেম থেকে মুছে ফেলা হয়েছে।",
+        variant: 'default'
+      });
+
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        variant: 'destructive',
+        title: "ত্রুটি",
+        description: error.message || "ব্যবহারকারী মুছে ফেলতে ব্যর্থ হয়েছে।"
+      });
+    } finally {
+      setIsDeleting(false);
+      setUserToDelete(null);
+      setIsDeleteAlertOpen(false);
+    }
   }
 
   const filteredUsers = React.useMemo(() => {
@@ -312,7 +358,10 @@ export default function UsersPage() {
                               এডিট
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDeleteClick(user.id)} className="text-red-500 focus:text-red-500 focus:bg-red-50">মুছে ফেলুন</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteClick(user.id)} className="text-red-500 focus:text-red-500 focus:bg-red-50">
+                              <Trash2 className='mr-2 h-4 w-4' />
+                              মুছে ফেলুন
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -501,14 +550,23 @@ export default function UsersPage() {
       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>আপনি কি নিশ্চিত?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this user.
+              এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না। এটি ব্যবহারকারীকে Firebase Authentication এবং Database থেকে স্থায়ীভাবে মুছে ফেলবে।
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteAlertOpen(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Continue</AlertDialogAction>
+            <AlertDialogCancel onClick={() => setIsDeleteAlertOpen(false)} disabled={isDeleting}>বাতিল</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  মুছে ফেলা হচ্ছে...
+                </>
+              ) : (
+                'হ্যাঁ, মুছে ফেলুন'
+              )}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
