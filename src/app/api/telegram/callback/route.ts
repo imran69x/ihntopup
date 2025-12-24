@@ -245,36 +245,64 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Get wallet request document
-                const requestRef = db.collection('wallet_top_up_requests').doc(requestId);
+                let requestRef = db.collection('wallet_top_up_requests').doc(requestId);
                 console.log('📂 Looking for document with ID:', requestId);
-                const requestDoc = await requestRef.get();
+                let requestDoc = await requestRef.get();
 
+                // If not found by document ID, try to find by matching criteria
                 if (!requestDoc.exists) {
-                    console.error('❌ Request document not found!');
-                    console.error('  - Searched for ID:', requestId);
-                    console.error('  - Collection: wallet_top_up_requests');
+                    console.log('⚠️ Direct lookup failed, searching by criteria...');
 
-                    // Try to list all pending requests to debug
                     try {
-                        const allRequests = await db.collection('wallet_top_up_requests')
-                            .where('status', '==', 'Pending')
-                            .limit(10)
-                            .get();
-                        console.error('  - Found', allRequests.size, 'pending requests in database');
-                        allRequests.forEach(doc => {
-                            console.error('    • Document ID:', doc.id, '| Stored ID field:', doc.data().id);
-                        });
-                    } catch (debugError) {
-                        console.error('Debug query failed:', debugError);
-                    }
+                        // Extract request info from the Telegram message for matching
+                        const messageText = callbackQuery.message.text || '';
 
-                    await answerCallbackQuery(callbackQuery.id, '❌ Request not found', true);
-                    return NextResponse.json({ success: false, error: 'Request not found' });
+                        // Try to find matching pending request
+                        const pendingRequests = await db.collection('wallet_top_up_requests')
+                            .where('status', '==', 'Pending')
+                            .limit(50)
+                            .get();
+
+                        console.log(`  - Found ${pendingRequests.size} pending requests to check`);
+
+                        // Try to match by ID field if it exists in the document
+                        let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+                        pendingRequests.forEach(doc => {
+                            const data = doc.data();
+                            // Check if stored id field matches the callback requestId
+                            if (data.id === requestId) {
+                                console.log('✅ Found matching request by id field!');
+                                matchedDoc = doc;
+                            }
+                        });
+
+                        if (matchedDoc) {
+                            requestDoc = matchedDoc;
+                            requestRef = db.collection('wallet_top_up_requests').doc(matchedDoc.id);
+                        } else {
+                            console.error('❌ Request document not found!');
+                            console.error('  - Searched for ID:', requestId);
+                            console.error('  - Collection: wallet_top_up_requests');
+                            console.error('  - Checked', pendingRequests.size, 'pending requests');
+
+                            pendingRequests.forEach(doc => {
+                                console.error('    • Document ID:', doc.id, '| Stored ID field:', doc.data().id);
+                            });
+
+                            await answerCallbackQuery(callbackQuery.id, '❌ Request not found', true);
+                            return NextResponse.json({ success: false, error: 'Request not found' });
+                        }
+                    } catch (debugError) {
+                        console.error('Error during fallback search:', debugError);
+                        await answerCallbackQuery(callbackQuery.id, '❌ Request not found', true);
+                        return NextResponse.json({ success: false, error: 'Request not found' });
+                    }
                 }
 
                 console.log('✅ Request document found!');
                 console.log('  - Document ID:', requestDoc.id);
                 console.log('  - Status:', requestDoc.data()?.status);
+
 
                 const requestData = requestDoc.data();
 
