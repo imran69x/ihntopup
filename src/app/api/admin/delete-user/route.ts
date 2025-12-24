@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminFirestore } from '@/lib/firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 
 export async function POST(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
         const adminUserId = decodedToken.uid;
 
         // Check if the requesting user is an admin
-        const adminUserDoc = await adminDb.collection('users').doc(adminUserId).get();
+        const adminUserDoc = await adminFirestore.collection('users').doc(adminUserId).get();
         const adminUser = adminUserDoc.data();
 
         if (!adminUser || !adminUser.isAdmin) {
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
         // Delete user document from Firestore
         try {
-            await adminDb.collection('users').doc(userId).delete();
+            await adminFirestore.collection('users').doc(userId).delete();
         } catch (firestoreError) {
             console.error('Error deleting user from Firestore:', firestoreError);
             throw firestoreError;
