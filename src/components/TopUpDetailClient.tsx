@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import type { TopUpCardData, Order as OrderType, Coupon, SavedUid, Notice, TopUpCardOption, PaymentSettings } from '@/lib/data';
@@ -1016,18 +1016,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
 
                     <Card className="shadow-md">
                         <CardContent className="pt-6">
-                            {card.purchaseType !== 'Free' && !card.isResellerProduct && (
-                                <>
-                                    <div className="flex gap-2 mb-4">
-                                        <Input placeholder="কুপন কোড" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} />
-                                        <Button variant="outline" onClick={handleApplyCoupon} disabled={isCouponLoading}>
-                                            {isCouponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'প্রয়োগ'}
-                                        </Button>
-                                    </div>
 
-                                    <Separator />
-                                </>
-                            )}
 
                             <div className={cn("space-y-2", card.purchaseType !== 'Free' && "mt-4")}>
                                 <div className="flex justify-between">
