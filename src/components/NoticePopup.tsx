@@ -84,7 +84,7 @@ export default function NoticePopup() {
             {activeNotice.linkUrl ? (
                 <a href={activeNotice.linkUrl} target="_blank" rel="noopener noreferrer" onClick={handleDismiss} className="inline-block">
                     <Button>
-                        Click Here
+                        Join Telegram
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </a>
