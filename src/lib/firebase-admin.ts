@@ -13,7 +13,8 @@ if (!getApps().length) {
         const serviceAccount = {
             projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            // Handle both quoted and unquoted private keys, and replace escaped newlines
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/gm, '\n'),
         };
 
         // Validate that all required credentials are present
