@@ -798,8 +798,59 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                         </SectionCard>
                     )}
 
+
+                    {!card.isResellerProduct && (
+                        <SectionCard title="অ্যাকাউন্ট তথ্য" step={hasOptions ? "২" : "১"}>
+                            {card.serviceType === 'eFootball' ? (
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="konamiId">Konami ID</Label>
+                                        <Input id="konamiId" placeholder="আপনার Konami ID দিন" value={efootballDetails.konamiId} onChange={(e) => setEfootballDetails(prev => ({ ...prev, konamiId: e.target.value }))} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Password</Label>
+                                        <Input id="password" type="password" placeholder="আপনার পাসওয়ার্ড দিন" value={efootballDetails.password} onChange={(e) => setEfootballDetails(prev => ({ ...prev, password: e.target.value }))} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+                                        <Input id="whatsappNumber" placeholder="আপনার হোয়াটসঅ্যাপ নম্বর দিন" value={efootballDetails.whatsappNumber} onChange={(e) => setEfootballDetails(prev => ({ ...prev, whatsappNumber: e.target.value }))} />
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="uid">{uidLabel}</Label>
+                                        <Input id="uid" placeholder={uidPlaceholder} value={uid} onChange={(e) => { setUid(e.target.value); }} />
+                                    </div>
+                                    {savedUids.length > 0 && (
+                                        <div className="mt-3 space-y-2">
+                                            <Label className="text-xs text-muted-foreground">আপনার সংরক্ষিত আইডি</Label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {savedUids.map((saved, index) => (
+                                                    <Button
+                                                        key={index}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-auto"
+                                                        onClick={() => setUid(saved.uid)}
+                                                    >
+                                                        <Star className="mr-2 h-4 w-4 text-yellow-400" />
+                                                        <div>
+                                                            <p className="font-semibold text-left">{saved.game}</p>
+                                                            <p className="text-xs text-muted-foreground font-mono">{saved.uid}</p>
+                                                        </div>
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </SectionCard>
+                    )}
+
                     {card.serviceType !== 'eFootball' && (
-                        <SectionCard title="পরিমাণ নির্বাচন করুন" step={hasOptions ? "২" : "১"}>
+                        <SectionCard title="পরিমাণ নির্বাচন করুন" step={hasOptions ? "৩" : "২"}>
                             <div className="flex items-center justify-center gap-4">
                                 <Button
                                     variant="outline"
@@ -851,55 +902,6 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                         </SectionCard>
                     )}
 
-                    {!card.isResellerProduct && (
-                        <SectionCard title="অ্যাকাউন্ট তথ্য" step={hasOptions ? "৩" : "২"}>
-                            {card.serviceType === 'eFootball' ? (
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="konamiId">Konami ID</Label>
-                                        <Input id="konamiId" placeholder="আপনার Konami ID দিন" value={efootballDetails.konamiId} onChange={(e) => setEfootballDetails(prev => ({ ...prev, konamiId: e.target.value }))} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">Password</Label>
-                                        <Input id="password" type="password" placeholder="আপনার পাসওয়ার্ড দিন" value={efootballDetails.password} onChange={(e) => setEfootballDetails(prev => ({ ...prev, password: e.target.value }))} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
-                                        <Input id="whatsappNumber" placeholder="আপনার হোয়াটসঅ্যাপ নম্বর দিন" value={efootballDetails.whatsappNumber} onChange={(e) => setEfootballDetails(prev => ({ ...prev, whatsappNumber: e.target.value }))} />
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="uid">{uidLabel}</Label>
-                                        <Input id="uid" placeholder={uidPlaceholder} value={uid} onChange={(e) => { setUid(e.target.value); }} />
-                                    </div>
-                                    {savedUids.length > 0 && (
-                                        <div className="mt-3 space-y-2">
-                                            <Label className="text-xs text-muted-foreground">আপনার সংরক্ষিত আইডি</Label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {savedUids.map((saved, index) => (
-                                                    <Button
-                                                        key={index}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-auto"
-                                                        onClick={() => setUid(saved.uid)}
-                                                    >
-                                                        <Star className="mr-2 h-4 w-4 text-yellow-400" />
-                                                        <div>
-                                                            <p className="font-semibold text-left">{saved.game}</p>
-                                                            <p className="text-xs text-muted-foreground font-mono">{saved.uid}</p>
-                                                        </div>
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </SectionCard>
-                    )}
 
 
                 </div>

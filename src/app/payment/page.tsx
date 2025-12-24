@@ -97,7 +97,6 @@ function PaymentPageComponent() {
       amount: parseFloat(amount),
       cartItems,
       uid: searchParams.get('uid') || '',
-      couponId: searchParams.get('couponId') || null,
       sessionId: sessionId,
     };
   }, [searchParams]);
@@ -156,7 +155,7 @@ function PaymentPageComponent() {
       quantity: item.quantity,
       gameUid: paymentInfo!.uid,
       paymentMethod: 'Manual',
-      couponId: paymentInfo!.couponId || null,
+
       totalAmount: item.price * item.quantity,
       orderDate: new Date().toISOString(),
       status: 'Pending',

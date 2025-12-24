@@ -6,7 +6,6 @@ import {
   Users,
   ShoppingBag,
   CreditCard,
-  Percent,
   Gift,
   PanelLeft,
   ChevronDown,
@@ -281,7 +280,6 @@ function SidebarNav({ isMobile = false, onLinkClick }: { isMobile?: boolean, onL
 
       <NavItem href="/admin/payment-methods" icon={Settings} pathname={pathname} onClick={handleLinkClick}>Payment Methods</NavItem>
 
-      <NavItem href="/admin/coupons" icon={Percent} pathname={pathname} onClick={handleLinkClick}>Coupons</NavItem>
       <NavItem href="/admin/banners" icon={ImageIcon} pathname={pathname} onClick={handleLinkClick}>Banners</NavItem>
       <NavItem href="/admin/notices" icon={Newspaper} pathname={pathname} onClick={handleLinkClick}>Notices</NavItem>
     </nav>
