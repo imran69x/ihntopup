@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { TopUpCardData, TopUpCardOption } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Image from 'next/image';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 export default function AdminResellerCardsPage() {
     const firestore = useFirestore();
@@ -562,25 +563,13 @@ export default function AdminResellerCardsPage() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label htmlFor="imageUrl">Image URL</Label>
-                                <Input
-                                    id="imageUrl"
-                                    value={imageUrl}
-                                    onChange={(e) => setImageUrl(e.target.value)}
-                                    placeholder="https://..."
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="imageHint">Image Alt Text</Label>
-                                <Input
-                                    id="imageHint"
-                                    value={imageHint}
-                                    onChange={(e) => setImageHint(e.target.value)}
-                                    placeholder="Alt text for image"
-                                />
-                            </div>
+                        <div>
+                            <ImageUpload
+                                value={imageUrl}
+                                onChange={setImageUrl}
+                                label="Product Image"
+                                placeholder="https://..."
+                            />
                         </div>
 
                         <div className="grid grid-cols-4 gap-4">

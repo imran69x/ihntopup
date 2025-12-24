@@ -62,6 +62,7 @@ import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, u
 import type { TopUpCardData, TopUpCategory, TopUpCardOption } from '@/lib/data'
 import { collection, query, doc } from 'firebase/firestore'
 import { useToast } from '@/hooks/use-toast'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 type CardFormValues = {
   name: string
@@ -343,14 +344,18 @@ export default function TopupCardsPage() {
               <Textarea id="description" {...register('description')} />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="imageUrl">ছবির URL</Label>
-              <Input
-                id="imageUrl"
-                {...register('imageUrl')}
-                placeholder="https://example.com/image.png"
-              />
-            </div>
+            <Controller
+              name="imageUrl"
+              control={control}
+              render={({ field }) => (
+                <ImageUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  label="কার্ডের ছবি"
+                  placeholder="https://example.com/image.png"
+                />
+              )}
+            />
 
 
             <div className="grid grid-cols-3 gap-4">

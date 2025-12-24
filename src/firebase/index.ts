@@ -1,7 +1,12 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+
+// Declare global type for Firebase app
+declare global {
+  var firebaseApp: FirebaseApp | undefined;
+}
 
 let firebaseApp: FirebaseApp;
 let auth: Auth;
@@ -20,32 +25,32 @@ if (typeof window !== 'undefined' && !getApps().length) {
 }
 // Note: Admin SDK should be used for server-side logic, 
 // but for environments where that's not set up, we ensure these don't break.
-if (global.firebaseApp) {
-    firebaseApp = global.firebaseApp;
+if (typeof global !== 'undefined' && global.firebaseApp) {
+  firebaseApp = global.firebaseApp;
 }
 
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
-    if (!getApps().length) {
-        let app;
-        try {
-            // This works in Firebase App Hosting
-            app = initializeApp();
-        } catch (e) {
-            // Fallback for other environments
-            app = initializeApp(firebaseConfig);
-        }
-        firebaseApp = app;
-        auth = getAuth(app);
-        firestore = getFirestore(app);
-    } else {
-        firebaseApp = getApp();
-        auth = getAuth(firebaseApp);
-        firestore = getFirestore(firebaseApp);
+  if (!getApps().length) {
+    let app;
+    try {
+      // This works in Firebase App Hosting
+      app = initializeApp();
+    } catch (e) {
+      // Fallback for other environments
+      app = initializeApp(firebaseConfig);
     }
+    firebaseApp = app;
+    auth = getAuth(app);
+    firestore = getFirestore(app);
+  } else {
+    firebaseApp = getApp();
+    auth = getAuth(firebaseApp);
+    firestore = getFirestore(firebaseApp);
+  }
 
-    return { firebaseApp, auth, firestore };
+  return { firebaseApp, auth, firestore };
 }
 
 

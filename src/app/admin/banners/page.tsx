@@ -53,8 +53,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import Image from 'next/image';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import type { BannerData } from '@/lib/data';
 import { collection, query, doc } from 'firebase/firestore';
@@ -68,81 +69,81 @@ type BannerFormValues = {
 };
 
 export default function BannersPage() {
-    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-    const [editingBanner, setEditingBanner] = React.useState<BannerData | null>(null);
-    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
-    const [bannerToDelete, setBannerToDelete] = React.useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingBanner, setEditingBanner] = React.useState<BannerData | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
+  const [bannerToDelete, setBannerToDelete] = React.useState<string | null>(null);
 
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    const bannersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'banners')) : null, [firestore]);
-    const { data: banners, isLoading } = useCollection<BannerData>(bannersQuery);
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const bannersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'banners')) : null, [firestore]);
+  const { data: banners, isLoading } = useCollection<BannerData>(bannersQuery);
 
-    const { register, handleSubmit, reset, setValue, watch } = useForm<BannerFormValues>();
+  const { register, handleSubmit, reset, setValue, watch, control } = useForm<BannerFormValues>();
 
-    const handleEdit = (banner: BannerData) => {
-        setEditingBanner(banner);
-        reset({
-            imageUrl: banner.image?.src || banner.imageUrl,
-            linkUrl: banner.linkUrl,
-            isActive: banner.isActive,
-        });
-        setIsDialogOpen(true);
-    }
-    
-    const handleAddNew = () => {
-        setEditingBanner(null);
-        reset({ imageUrl: '', linkUrl: '', isActive: true });
-        setIsDialogOpen(true);
-    }
-    
-    const onSubmit = (data: BannerFormValues) => {
-        if (!firestore) return;
+  const handleEdit = (banner: BannerData) => {
+    setEditingBanner(banner);
+    reset({
+      imageUrl: banner.image?.src || banner.imageUrl,
+      linkUrl: banner.linkUrl,
+      isActive: banner.isActive,
+    });
+    setIsDialogOpen(true);
+  }
 
-        const docData = {
-          ...data,
-          image: { src: data.imageUrl, hint: "banner" }, // simplified hint
-        };
+  const handleAddNew = () => {
+    setEditingBanner(null);
+    reset({ imageUrl: '', linkUrl: '', isActive: true });
+    setIsDialogOpen(true);
+  }
 
-        if (editingBanner) {
-            updateDocumentNonBlocking(doc(firestore, 'banners', editingBanner.id), docData);
-            toast({ title: "ব্যানার আপডেট করা হয়েছে" });
-        } else {
-            addDocumentNonBlocking(collection(firestore, 'banners'), docData);
-            toast({ title: "ব্যানার যোগ করা হয়েছে" });
-        }
-        setIsDialogOpen(false);
-    }
+  const onSubmit = (data: BannerFormValues) => {
+    if (!firestore) return;
 
-    const confirmDelete = () => {
-        if (!firestore || !bannerToDelete) return;
-        deleteDocumentNonBlocking(doc(firestore, 'banners', bannerToDelete));
-        toast({ variant: 'destructive', title: "ব্যানার মুছে ফেলা হয়েছে" });
-        setBannerToDelete(null);
-        setIsDeleteAlertOpen(false);
-    }
-
-    const handleDeleteClick = (bannerId: string) => {
-        setBannerToDelete(bannerId);
-        setIsDeleteAlertOpen(true);
+    const docData = {
+      ...data,
+      image: { src: data.imageUrl, hint: "banner" }, // simplified hint
     };
 
-    const getStatusBadgeVariant = (isActive: boolean) => {
-        return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
-    };
-    
-    if (isLoading) {
-        return <div className="flex justify-center items-center h-screen"><Loader2 className="h-8 w-8 animate-spin"/></div>
+    if (editingBanner) {
+      updateDocumentNonBlocking(doc(firestore, 'banners', editingBanner.id), docData);
+      toast({ title: "ব্যানার আপডেট করা হয়েছে" });
+    } else {
+      addDocumentNonBlocking(collection(firestore, 'banners'), docData);
+      toast({ title: "ব্যানার যোগ করা হয়েছে" });
     }
+    setIsDialogOpen(false);
+  }
+
+  const confirmDelete = () => {
+    if (!firestore || !bannerToDelete) return;
+    deleteDocumentNonBlocking(doc(firestore, 'banners', bannerToDelete));
+    toast({ variant: 'destructive', title: "ব্যানার মুছে ফেলা হয়েছে" });
+    setBannerToDelete(null);
+    setIsDeleteAlertOpen(false);
+  }
+
+  const handleDeleteClick = (bannerId: string) => {
+    setBannerToDelete(bannerId);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const getStatusBadgeVariant = (isActive: boolean) => {
+    return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>
+  }
 
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">ব্যানার</h1>
-          <Button onClick={handleAddNew} className="gap-1">
-            <PlusCircle className="h-4 w-4" />
-            নতুন ব্যানার যোগ করুন
-          </Button>
+        <h1 className="text-2xl font-bold">ব্যানার</h1>
+        <Button onClick={handleAddNew} className="gap-1">
+          <PlusCircle className="h-4 w-4" />
+          নতুন ব্যানার যোগ করুন
+        </Button>
       </div>
 
       <Card>
@@ -151,10 +152,10 @@ export default function BannersPage() {
           <CardDescription>
             প্রমোশনাল ব্যানার যোগ, এডিট বা মুছে ফেলুন।
           </CardDescription>
-           <div className="relative mt-2">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="ব্যানার খুঁজুন..." className="pl-8 w-full" />
-            </div>
+          <div className="relative mt-2">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="ব্যানার খুঁজুন..." className="pl-8 w-full" />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -173,7 +174,7 @@ export default function BannersPage() {
             <TableBody>
               {banners?.map((banner) => (
                 <TableRow key={banner.id}>
-                   <TableCell className="hidden sm:table-cell">
+                  <TableCell className="hidden sm:table-cell">
                     <Image
                       alt={banner.alt || 'Banner image'}
                       className="aspect-video rounded-md object-cover"
@@ -213,50 +214,59 @@ export default function BannersPage() {
           </Table>
         </CardContent>
       </Card>
-      
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingBanner ? 'ব্যানার এডিট করুন' : 'নতুন ব্যানার যোগ করুন'}</DialogTitle>
-              <DialogDescription>
-                ব্যানারের জন্য বিস্তারিত তথ্য পূরণ করুন।
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl">ছবির URL</Label>
-                <Input id="imageUrl" {...register('imageUrl', { required: true })} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="linkUrl">লিংক URL</Label>
-                <Input id="linkUrl" {...register('linkUrl', { required: true })} />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch id="status" checked={watch('isActive')} onCheckedChange={(checked) => setValue('isActive', checked)} />
-                <Label htmlFor="status">সক্রিয়</Label>
-              </div>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingBanner ? 'ব্যানার এডিট করুন' : 'নতুন ব্যানার যোগ করুন'}</DialogTitle>
+            <DialogDescription>
+              ব্যানারের জন্য বিস্তারিত তথ্য পূরণ করুন।
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
+            <Controller
+              name="imageUrl"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <ImageUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  label="ব্যানার ছবি"
+                  required
+                />
+              )}
+            />
+            <div className="space-y-2">
+              <Label htmlFor="linkUrl">লিংক URL</Label>
+              <Input id="linkUrl" {...register('linkUrl', { required: true })} />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch id="status" checked={watch('isActive')} onCheckedChange={(checked) => setValue('isActive', checked)} />
+              <Label htmlFor="status">সক্রিয়</Label>
+            </div>
             <DialogFooter className="mt-4">
               <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>বাতিল</Button>
               <Button type="submit">সংরক্ষণ</Button>
             </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-        <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete this banner and remove its data from our servers.
-                </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setIsDeleteAlertOpen(false)}>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmDelete}>Continue</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this banner and remove its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteAlertOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
