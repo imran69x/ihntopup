@@ -6,3 +6,6 @@
 
 // Export the coin reward function
 export { addCoinsOnOrderComplete } from './addCoinsOnOrderComplete';
+
+// Export the verified badge function
+export { grantVerifiedBadgeOnSpending } from './grantVerifiedBadgeOnSpending';
