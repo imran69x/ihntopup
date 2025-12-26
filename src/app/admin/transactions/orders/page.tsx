@@ -35,7 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Order } from '@/lib/data';
+import type { Order, User as AppUser } from '@/lib/data';
 import { collection, query, orderBy } from 'firebase/firestore';
 
 
@@ -57,9 +57,18 @@ export default function OrderTransactionsPage() {
   const firestore = useFirestore();
   const ordersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'orders'), orderBy('orderDate', 'desc')) : null, [firestore]);
   const { data: transactions, isLoading } = useCollection<Order>(ordersQuery);
-  
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-8 w-8 animate-spin"/></div>
+
+  const { data: users, isLoading: isLoadingUsers } = useCollection<AppUser>(
+    useMemoFirebase(() => firestore ? query(collection(firestore, 'users')) : null, [firestore])
+  );
+
+  const userMap = React.useMemo(() => {
+    if (!users) return new Map<string, AppUser>();
+    return new Map(users.map(user => [user.id, user]));
+  }, [users]);
+
+  if (isLoading || isLoadingUsers) {
+    return <div className="flex justify-center items-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>
   }
 
   return (
@@ -93,47 +102,47 @@ export default function OrderTransactionsPage() {
         </div>
       </div>
       <Card>
-          <CardHeader>
-            <CardTitle>Transactions</CardTitle>
-            <CardDescription>
-              A log of all order-related financial transactions.
-            </CardDescription>
-            <div className="relative mt-2">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search transactions..." className="pl-8 w-full" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className='w-[120px]'>Order ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment Method</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+        <CardHeader>
+          <CardTitle>Transactions</CardTitle>
+          <CardDescription>
+            A log of all order-related financial transactions.
+          </CardDescription>
+          <div className="relative mt-2">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search transactions..." className="pl-8 w-full" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className='w-[120px]'>Order ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Product</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment Method</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transactions?.map((tx) => (
+                <TableRow key={tx.id}>
+                  <TableCell className='font-mono'>{tx.orderId || 'N/A'}</TableCell>
+                  <TableCell>{userMap.get(tx.userId)?.uniqueId || 'N/A'}</TableCell>
+                  <TableCell>{tx.productName} - {tx.productOption}</TableCell>
+                  <TableCell>
+                    <Badge className={getStatusBadgeVariant(tx.status)} variant="outline">
+                      {tx.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{tx.manualPaymentDetails?.method ? `${tx.manualPaymentDetails.method} - Instant Pay` : tx.paymentMethod}</TableCell>
+                  <TableCell className="text-right font-medium">৳{tx.totalAmount.toFixed(2)}</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions?.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell className='font-mono'>{tx.id}</TableCell>
-                    <TableCell>{tx.userId}</TableCell>
-                    <TableCell>{tx.productName} - {tx.productOption}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadgeVariant(tx.status)} variant="outline">
-                        {tx.status}
-                      </Badge>
-                    </TableCell>
-                     <TableCell>{tx.paymentMethod}</TableCell>
-                     <TableCell className="text-right font-medium">৳{tx.totalAmount.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </>
   );
 }

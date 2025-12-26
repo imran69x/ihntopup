@@ -18,6 +18,7 @@ import type { User as UserData, Order, SavedUid } from '@/lib/data';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile } from 'firebase/auth';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 const ActionButton = ({ icon, title, description, href, onClick }: { icon: React.ElementType, title: string, description: string, href?: string, onClick?: () => void }) => {
     const Icon = icon;
@@ -196,7 +197,10 @@ export default function ProfilePage() {
                         </div>
                     </div>
                     <CardContent className="pt-16 pb-6 text-center">
-                        <h2 className="text-2xl font-bold">{user.name}</h2>
+                        <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
+                            {user.name}
+                            <VerifiedBadge isVerified={appUser.hasVerifiedBadge} size="md" />
+                        </h2>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                         <div className="mt-2 flex justify-center items-center gap-2">
                             <p className="text-xs text-muted-foreground">ID:</p>

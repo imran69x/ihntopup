@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { LogOut, ShoppingBag, User, Wallet, Headset, X, Store } from "lucide-react";
 import Link from 'next/link';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 interface ProfileSidebarProps {
   open: boolean;
@@ -52,7 +53,10 @@ export default function ProfileSidebar({ open, onOpenChange }: ProfileSidebarPro
             <AvatarFallback className="text-2xl">{appUser?.name?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div className="overflow-hidden">
-            <h3 className="font-bold text-lg truncate">{appUser?.name}</h3>
+            <h3 className="font-bold text-lg truncate flex items-center gap-1">
+              {appUser?.name}
+              <VerifiedBadge isVerified={appUser?.hasVerifiedBadge} size="sm" />
+            </h3>
             <p className="text-sm text-muted-foreground truncate">{appUser?.email}</p>
           </div>
         </div>

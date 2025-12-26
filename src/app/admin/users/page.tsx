@@ -66,6 +66,7 @@ import type { User as UserData } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 
 const DetailRow = ({ label, value, isMono = false }: { label: string, value: React.ReactNode, isMono?: boolean }) => (
@@ -92,6 +93,7 @@ export default function UsersPage() {
   const [telegramUserId, setTelegramUserId] = React.useState(''); // Add Telegram User ID
   const [isBanned, setIsBanned] = React.useState(false);
   const [isReseller, setIsReseller] = React.useState(false);
+  const [hasVerifiedBadge, setHasVerifiedBadge] = React.useState(false);
 
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
   const [userToDelete, setUserToDelete] = React.useState<string | null>(null);
@@ -121,6 +123,7 @@ export default function UsersPage() {
     setTelegramUserId(user.telegramUserId ?? ''); // Load Telegram User ID
     setIsBanned(user.isBanned ?? false);
     setIsReseller(user.isReseller ?? false);
+    setHasVerifiedBadge(user.hasVerifiedBadge ?? false);
     setIsEditOpen(true);
     // Close the details dialog if it's open
     setIsDetailsOpen(false);
@@ -157,7 +160,8 @@ export default function UsersPage() {
       isAdmin,
       telegramUserId: telegramUserId.trim() || null, // Save Telegram User ID (null if empty)
       isBanned,
-      isReseller
+      isReseller,
+      hasVerifiedBadge
     });
     toast({ title: "ব্যবহারকারী আপডেট করা হয়েছে", description: `${name}-এর প্রোফাইল আপডেট করা হয়েছে।` });
     setIsEditOpen(false);
@@ -314,7 +318,10 @@ export default function UsersPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{user.name}</div>
+                            <div className="font-medium flex items-center gap-1">
+                              {user.name}
+                              <VerifiedBadge isVerified={user.hasVerifiedBadge} size="sm" />
+                            </div>
                             <div className="text-sm text-muted-foreground">
                               {user.email}
                             </div>
@@ -522,6 +529,21 @@ export default function UsersPage() {
                 />
                 <Label htmlFor="isReseller" className="cursor-pointer">
                   {isReseller ? "Yes" : "No"}
+                </Label>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="hasVerifiedBadge" className="text-right">
+                Verified Badge
+              </Label>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Switch
+                  id="hasVerifiedBadge"
+                  checked={hasVerifiedBadge}
+                  onCheckedChange={setHasVerifiedBadge}
+                />
+                <Label htmlFor="hasVerifiedBadge" className="cursor-pointer">
+                  {hasVerifiedBadge ? "Yes" : "No"}
                 </Label>
               </div>
             </div>

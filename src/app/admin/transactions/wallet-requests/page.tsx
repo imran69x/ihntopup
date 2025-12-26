@@ -47,6 +47,7 @@ import { collection, query, orderBy, doc, updateDoc, runTransaction, getDoc } fr
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 const getStatusBadgeVariant = (status: WalletTopUpRequest['status']) => {
     switch (status) {
@@ -84,6 +85,15 @@ export default function WalletRequestsPage() {
 
     const requestsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'wallet_top_up_requests'), orderBy('requestDate', 'desc')) : null, [firestore]);
     const { data: requests, isLoading } = useCollection<WalletTopUpRequest>(requestsQuery);
+
+    const { data: users, isLoading: isLoadingUsers } = useCollection<AppUser>(
+        useMemoFirebase(() => firestore ? query(collection(firestore, 'users')) : null, [firestore])
+    );
+
+    const userMap = React.useMemo(() => {
+        if (!users) return new Map<string, AppUser>();
+        return new Map(users.map(user => [user.id, user]));
+    }, [users]);
 
     const filteredRequests = (status: WalletTopUpRequest['status']) => {
         const baseFiltered = requests?.filter(r => r.status === status) || [];
@@ -205,8 +215,11 @@ export default function WalletRequestsPage() {
                     <TableRow key={request.id}>
                         <TableCell>{new Date(request.requestDate).toLocaleDateString()}</TableCell>
                         <TableCell>
-                            <div className="font-medium">{request.userEmail}</div>
-                            <div className="text-xs text-muted-foreground font-mono">{request.userId}</div>
+                            <div className="font-medium flex items-center gap-1">
+                                {request.userEmail}
+                                <VerifiedBadge isVerified={userMap.get(request.userId)?.hasVerifiedBadge} size="sm" />
+                            </div>
+                            <div className="text-xs text-muted-foreground font-mono">{userMap.get(request.userId)?.uniqueId || 'N/A'}</div>
                         </TableCell>
                         <TableCell className="font-semibold">৳{request.amount}</TableCell>
                         <TableCell className="hidden md:table-cell font-mono">{request.senderPhone}</TableCell>
@@ -270,7 +283,7 @@ export default function WalletRequestsPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? (
+                        {isLoading || isLoadingUsers ? (
                             <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
                         ) : (
                             <>
@@ -299,7 +312,7 @@ export default function WalletRequestsPage() {
                                 </CardHeader>
                                 <CardContent className='space-y-3 text-sm'>
                                     <DetailRow icon={User} label="ইমেইল" value={selectedRequest.userEmail} />
-                                    <DetailRow icon={Hash} label="ব্যবহারকারী আইডি" value={<span className='font-mono'>{selectedRequest.userId}</span>} />
+                                    <DetailRow icon={Hash} label="ব্যবহারকারী আইডি" value={<span className='font-mono'>{userMap.get(selectedRequest.userId)?.uniqueId || 'N/A'}</span>} />
                                 </CardContent>
                             </Card>
                             <Card>

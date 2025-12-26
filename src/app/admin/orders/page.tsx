@@ -93,6 +93,7 @@ import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking
 import { collection, query, where, doc, updateDoc, orderBy, runTransaction, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 type OrderStatus = Order['status'];
 type OrderType = 'Game' | 'Others' | 'All' | 'eFootball';
@@ -344,16 +345,12 @@ export default function OrdersPage() {
       ordersToDisplay = ordersToDisplay.filter(order => {
         const user = userMap.get(order.userId);
         return (
-          order.productName?.toLowerCase().includes(lowercasedSearchTerm) ||
-          order.productOption?.toLowerCase().includes(lowercasedSearchTerm) ||
-          order.gameUid.toLowerCase().includes(lowercasedSearchTerm) ||
           order.userName?.toLowerCase().includes(lowercasedSearchTerm) ||
           (user && user.email?.toLowerCase().includes(lowercasedSearchTerm)) ||
           (order.orderId && order.orderId.toString().includes(searchTerm))
         );
       });
     }
-
     return ordersToDisplay;
   }, [ordersForType, activeStatusTab, activeProductTab, searchTerm, userMap]);
 
@@ -481,7 +478,7 @@ export default function OrdersPage() {
           <div className="relative mt-2">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="ইমেল, নাম, বা আইডি দিয়ে অর্ডার খুঁজুন..."
+              placeholder="ইমেল, নাম, বা অর্ডার আইডি দিয়ে খুঁজুন..."
               className="pl-8 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -529,8 +526,13 @@ export default function OrdersPage() {
                   <CardTitle className='text-base flex items-center gap-2'><User className='h-4 w-4' /> ব্যবহারকারীর বিবরণ</CardTitle>
                 </CardHeader>
                 <CardContent className='space-y-3 text-sm'>
-                  <DetailRow icon={User} label="নাম" value={selectedOrder.userName} />
-                  <DetailRow icon={Hash} label="ব্যবহারকারী আইডি" value={<span className='font-mono'>{selectedOrder.userId}</span>} />
+                  <DetailRow icon={User} label="নাম" value={
+                    <div className="flex items-center gap-1">
+                      {selectedOrder.userName}
+                      <VerifiedBadge isVerified={userMap.get(selectedOrder.userId)?.hasVerifiedBadge} size="sm" />
+                    </div>
+                  } />
+                  <DetailRow icon={Hash} label="ব্যবহারকারী আইডি" value={<span className='font-mono'>{userMap.get(selectedOrder.userId)?.uniqueId || 'N/A'}</span>} />
 
                   {selectedOrder.eFootballDetails ? (
                     <>
@@ -582,7 +584,7 @@ export default function OrdersPage() {
                   ) : (
                     <div className="flex items-center gap-2 text-sm p-3 rounded-md bg-green-50 border border-green-200">
                       <CreditCard className='h-5 w-5 text-green-500' />
-                      <p>পেমেন্ট মেথড: <span className='font-bold'>{selectedOrder.paymentMethod || 'ম্যানুয়াল / ইন্সট্যান্ট'}</span></p>
+                      <p>পেমেন্ট মেথড: <span className='font-bold'>{selectedOrder.manualPaymentDetails?.method ? `${selectedOrder.manualPaymentDetails.method} - Instant Pay` : (selectedOrder.paymentMethod || 'ম্যানুয়াল / ইন্সট্যান্ট')}</span></p>
                     </div>
                   )}
 

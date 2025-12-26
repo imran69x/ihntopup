@@ -16,6 +16,7 @@ export type User = {
   coinFund?: number;
   referralCode?: string;
   isVerified?: boolean;
+  hasVerifiedBadge?: boolean; // Manual verified badge (blue checkmark)
   isAdmin?: boolean;
   telegramUserId?: string; // Telegram user ID for admin verification in bot callbacks
   isBanned?: boolean;
