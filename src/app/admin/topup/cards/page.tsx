@@ -69,7 +69,7 @@ type CardFormValues = {
   description: string
   imageUrl: string
   categoryId: string;
-  serviceType: 'Game' | 'Others' | 'eFootball';
+  serviceType: 'Game' | 'Others' | 'eFootball' | 'Subscriptions';
   purchaseType: 'Paid' | 'Free';
   isActive: boolean
   price?: number;
@@ -394,6 +394,7 @@ export default function TopupCardsPage() {
                       <SelectContent>
                         <SelectItem value="Game">গেম সার্ভিস</SelectItem>
                         <SelectItem value="eFootball">eFootball</SelectItem>
+                        <SelectItem value="Subscriptions">SUBSCRIPTIONS</SelectItem>
                         <SelectItem value="Others">অন্যান্য সার্ভিস</SelectItem>
                       </SelectContent>
                     </Select>

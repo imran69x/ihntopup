@@ -39,7 +39,7 @@ export default function AdminResellerCardsPage() {
     const [imageUrl, setImageUrl] = useState('');
     const [imageHint, setImageHint] = useState('');
     const [categoryId, setCategoryId] = useState('reseller');
-    const [serviceType, setServiceType] = useState<'Game' | 'Others' | 'eFootball'>('Others');
+    const [serviceType, setServiceType] = useState<'Game' | 'Others' | 'eFootball' | 'Subscriptions'>('Others');
     const [gameUidFormat, setGameUidFormat] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [sortOrder, setSortOrder] = useState('0');
@@ -582,6 +582,7 @@ export default function AdminResellerCardsPage() {
                                     <SelectContent>
                                         <SelectItem value="Game">Game</SelectItem>
                                         <SelectItem value="eFootball">eFootball</SelectItem>
+                                        <SelectItem value="Subscriptions">SUBSCRIPTIONS</SelectItem>
                                         <SelectItem value="Others">Others</SelectItem>
                                     </SelectContent>
                                 </Select>

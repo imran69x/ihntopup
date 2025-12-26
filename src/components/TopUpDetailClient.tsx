@@ -655,7 +655,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
             toast({
                 variant: 'destructive',
                 title: 'প্রয়োজনীয় তথ্য দিন',
-                description: `অর্ডার করার জন্য অনুগ্রহ করে আপনার ${card.serviceType === 'Game' ? 'প্লেয়ার আইডি' : 'লিংক বা নম্বর'} দিন।`,
+                description: `অর্ডার করার জন্য অনুগ্রহ করে আপনার ${card.serviceType === 'Game' ? 'প্লেয়ার আইডি' : card.serviceType === 'Subscriptions' ? 'হোয়াটসঅ্যাপ নাম্বার' : 'লিংক বা নম্বর'} দিন।`,
             });
             return;
         }
@@ -688,8 +688,10 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
 
     const hasOptions = card.options && card.options.length > 0;
 
-    const uidLabel = card.serviceType === 'Others' ? 'প্রয়োজনীয় তথ্য' : 'প্লেয়ার আইডি';
-    const uidPlaceholder = card.serviceType === 'Others' ? 'আপনার লিংক বা নম্বর দিন' : 'প্লেয়ার আইডি লিখুন';
+    const uidLabel = card.serviceType === 'Subscriptions' ? 'হোয়াটসঅ্যাপ নাম্বার' :
+        card.serviceType === 'Others' ? 'প্রয়োজনীয় তথ্য' : 'প্লেয়ার আইডি';
+    const uidPlaceholder = card.serviceType === 'Subscriptions' ? 'হোয়াটসঅ্যাপ নাম্বার দিন' :
+        card.serviceType === 'Others' ? 'আপনার লিংক বা নম্বর দিন' : 'প্লেয়ার আইডি লিখুন';
 
     return (
         <>
