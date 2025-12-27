@@ -1081,7 +1081,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                                         )}
                                     >
                                         <div className="relative w-full flex-grow p-4 flex items-center justify-center min-h-[80px]">
-                                            <Image src="https://i.imgur.com/bJH9BH5.png" alt="My Wallet" layout="fill" className="object-contain p-4" />
+                                            <Image src="/logo.png" alt="My Wallet" layout="fill" className="object-contain p-4 rounded-lg" />
                                         </div>
                                         <div className={cn(
                                             "p-2 text-center w-full text-sm font-semibold",

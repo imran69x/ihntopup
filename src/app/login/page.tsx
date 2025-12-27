@@ -95,7 +95,7 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-12 fade-in pt-20 pb-24">
       <div className="flex flex-col items-center text-center mb-8">
         <div className="p-3 bg-white rounded-2xl shadow-md mb-4 z-10">
-          <Image src="https://i.imgur.com/bJH9BH5.png" alt="IHN TOPUP Logo" width={48} height={48} />
+          <Image src="/logo.png" alt="IHN TOPUP Logo" width={80} height={80} className="rounded-lg" />
         </div>
         <CardTitle className="text-2xl">স্বাগতম!</CardTitle>
         <p className="text-muted-foreground mt-1">আপনার অ্যাকাউন্টে সাইন ইন করুন</p>

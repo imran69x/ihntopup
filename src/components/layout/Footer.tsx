@@ -1,4 +1,4 @@
-import { CreditCard, Telegram } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import Link from "next/link";
 import { FacebookIcon, YoutubeIcon, InstagramIcon, TelegramIcon } from "@/components/icons";
 import Image from "next/image";
@@ -10,17 +10,17 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <div>
                         <div className="mb-4">
-                           <div className="inline-block p-2 bg-white/10 rounded-xl border border-white/20 backdrop-blur-sm shadow-lg">
+                            <div className="inline-block p-2 bg-white/10 rounded-xl border border-white/20 backdrop-blur-sm shadow-lg">
                                 <Link href="/">
-                                    <Image src="https://i.imgur.com/bJH9BH5.png" alt="IHN TOPUP Logo" width={48} height={48} />
+                                    <Image src="/logo.png" alt="IHN TOPUP Logo" width={64} height={64} className="rounded-lg" />
                                 </Link>
-                           </div>
+                            </div>
                         </div>
                         <p className="text-white/80 text-sm">
                             Get your favorite game credits and digital vouchers instantly. Fast, secure, and reliable service.
                         </p>
                     </div>
-                    
+
                     <div>
                         <h3 className="font-bold text-lg mb-4">Customer Support</h3>
                         <div className="space-y-3">
@@ -35,7 +35,7 @@ export default function Footer() {
                             </Link>
                             <Link href="https://t.me/ihntopup" target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
                                 <div className="flex items-center gap-3">
-                                     <TelegramIcon className="h-7 w-7 text-white" />
+                                    <TelegramIcon className="h-7 w-7 text-white" />
                                     <div>
                                         <p className="text-xs">Telegram Group</p>
                                         <p className="font-semibold">Join Now</p>
@@ -45,7 +45,7 @@ export default function Footer() {
                         </div>
                     </div>
 
-                     <div>
+                    <div>
                         <h3 className="font-bold text-lg mb-4">Quick Links</h3>
                         <ul className="space-y-2">
                             <li><Link href="/about" className="text-white/80 hover:text-white">About Us</Link></li>

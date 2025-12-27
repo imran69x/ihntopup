@@ -66,7 +66,7 @@ export default function Header() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="https://i.imgur.com/bJH9BH5.png" alt="IHN TOPUP Logo" width={48} height={48} />
+              <Image src="/logo1.png" alt="IHN TOPUP Logo" width={120} height={63} className="h-10 sm:h-12 w-auto" />
             </Link>
           </div>
 

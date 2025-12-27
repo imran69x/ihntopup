@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { useAuth as useFirebaseAuth, useFirestore, setDocumentNonBlocking } from "@/firebase";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile, User } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile, User, sendEmailVerification } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { doc, getDoc, collection, query, where, getDocs, writeBatch, serverTimestamp, limit } from "firebase/firestore";
 import Image from 'next/image';
@@ -125,7 +125,7 @@ function SignupFormComponent() {
             if (userCredential.user) {
                 await updateProfile(userCredential.user, { displayName: name });
                 // We are not blocking for verification email
-                userCredential.user.sendEmailVerification();
+                sendEmailVerification(userCredential.user);
                 await saveUserAndHandleReferral(firestore, userCredential.user, referralCode, name);
             }
             toast({ title: "Verification Sent", description: "A verification email has been sent. Please verify your email and then log in." });
@@ -164,7 +164,7 @@ function SignupFormComponent() {
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-12 fade-in pt-20 pb-24">
             <div className="flex flex-col items-center text-center mb-8">
                 <div className="p-3 bg-white rounded-2xl shadow-md mb-4 z-10">
-                    <Image src="https://i.imgur.com/bJH9BH5.png" alt="IHN TOPUP Logo" width={48} height={48} />
+                    <Image src="/logo.png" alt="IHN TOPUP Logo" width={80} height={80} className="rounded-lg" />
                 </div>
                 <CardTitle className="text-2xl">Sign Up</CardTitle>
                 <p className="text-muted-foreground mt-1">Join us and start topping up!</p>
