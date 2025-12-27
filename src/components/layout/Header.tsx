@@ -65,9 +65,25 @@ export default function Header() {
       <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo1.png" alt="IHN TOPUP Logo" width={120} height={63} className="h-10 sm:h-12 w-auto" />
-            </Link>
+            <Link href="/" className="flex items-center">
+  {/* Light mode logo */}
+  <Image
+    src="/logo-light.png"
+    alt="IHN TOPUP Logo"
+    width={240}
+    height={126}
+    className="h-14 sm:h-16 md:h-18 w-auto dark:hidden"
+  />
+
+  {/* Dark mode logo */}
+  <Image
+    src="/logo-dark.png"
+    alt="IHN TOPUP Logo"
+    width={240}
+    height={126}
+    className="h-14 sm:h-16 md:h-18 w-auto hidden dark:block"
+  />
+</Link>
           </div>
 
           <nav className="hidden md:flex flex-1 items-center justify-center gap-4">
