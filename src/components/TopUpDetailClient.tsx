@@ -69,6 +69,12 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
     const [isCouponLoading, setIsCouponLoading] = useState(false);
     const [efootballDetails, setEfootballDetails] = useState({ konamiId: '', password: '', whatsappNumber: '' });
 
+    // Social Media specific state
+    const [socialMediaLink, setSocialMediaLink] = useState('');
+    const [socialMediaQuantity, setSocialMediaQuantity] = useState<number | ''>(''); // Empty by default
+    const [minQuantity, setMinQuantity] = useState(10);
+    const [maxQuantity, setMaxQuantity] = useState(100000);
+
     const getInitialOption = () => {
         if (!card.options || card.options.length === 0) return undefined;
         return card.options.find(o => {
@@ -250,20 +256,29 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
 
 
     const createOrderObject = (paymentType: 'Wallet' | 'Manual' | 'CoinFund'): Omit<OrderType, 'id'> => {
+        // Calculate social media price: (price / 1000) × quantity
+        const qty = typeof socialMediaQuantity === 'number' ? socialMediaQuantity : 0;
+        const socialMediaTotal = card.serviceType === 'Social Media' && selectedOption
+            ? (selectedOption.price / 1000) * qty
+            : 0;
+
         const baseOrder: Partial<OrderType> = {
             userId: firebaseUser!.uid,
             userName: appUser?.name || firebaseUser?.displayName || 'Unknown User',
             topUpCardId: card.id,
-            quantity,
-            gameUid: card.serviceType === 'eFootball' ? 'eFootball Order' : (card.isResellerProduct ? 'Reseller Order' : uid),
+            quantity: card.serviceType === 'Social Media' ? qty : quantity,
+            gameUid: card.serviceType === 'Social Media' ? socialMediaLink :
+                (card.serviceType === 'eFootball' ? 'eFootball Order' :
+                    (card.isResellerProduct ? 'Reseller Order' : uid)),
             paymentMethod: paymentType,
-            originalAmount: totalPrice,
-            totalAmount: finalPrice,
+            originalAmount: card.serviceType === 'Social Media' ? socialMediaTotal : totalPrice,
+            totalAmount: card.serviceType === 'Social Media' ? socialMediaTotal : finalPrice,
             orderDate: new Date().toISOString(),
             // Auto-complete reseller orders
             status: card.isResellerProduct ? 'Completed' : (card.serviceType === 'Others' ? 'Processing' : 'Pending'),
             productName: card.name,
             productOption: selectedOption?.name || 'Standard',
+            serviceType: card.serviceType, // Store service type for display purposes
             couponId: appliedCoupon?.id || null,
             isLimitedStock: isLimitedStockOffer,
             isResellerProduct: card.isResellerProduct || false,
@@ -646,7 +661,24 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
             return;
         }
 
-        if (card.serviceType === 'eFootball') {
+        if (card.serviceType === 'Social Media') {
+            if (!socialMediaLink || !selectedOption) {
+                toast({
+                    variant: 'destructive',
+                    title: 'প্রয়োজনীয় তথ্য দিন',
+                    description: 'অর্ডার করার জন্য অনুগ্রহ করে সার্ভিস নির্বাচন করুন এবং আপনার সোশ্যাল মিডিয়া লিংক দিন।'
+                });
+                return;
+            }
+            if (!socialMediaQuantity || socialMediaQuantity < 10) {
+                toast({
+                    variant: 'destructive',
+                    title: 'অবৈধ পরিমাণ',
+                    description: 'ন্যূনতম ১০ পরিমাণ দিতে হবে।'
+                });
+                return;
+            }
+        } else if (card.serviceType === 'eFootball') {
             if (!efootballDetails.konamiId || !efootballDetails.password || !efootballDetails.whatsappNumber) {
                 toast({ variant: 'destructive', title: 'প্রয়োজনীয় তথ্য দিন', description: 'অর্ডার করার জন্য অনুগ্রহ করে আপনার Konami ID, Password, এবং WhatsApp নম্বর দিন।' });
                 return;
@@ -731,8 +763,8 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                         </CardContent>
                     </Card>
 
-                    {hasOptions && (
-                        <SectionCard title="রিচার্জ নির্বাচন করুন" step="1">
+                    {hasOptions && card.serviceType !== 'Social Media' && (
+                        <SectionCard title="সার্ভিস নির্বাচন করুন" step="1">
                             <div className={cn(
                                 "grid gap-3",
                                 card.serviceType === 'Others' ? 'grid-cols-1' : 'grid-cols-2'
@@ -802,56 +834,148 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
 
 
                     {!card.isResellerProduct && (
-                        <SectionCard title="অ্যাকাউন্ট তথ্য" step={hasOptions ? "২" : "১"}>
-                            {card.serviceType === 'eFootball' ? (
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="konamiId">Konami ID</Label>
-                                        <Input id="konamiId" placeholder="আপনার Konami ID দিন" value={efootballDetails.konamiId} onChange={(e) => setEfootballDetails(prev => ({ ...prev, konamiId: e.target.value }))} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">Password</Label>
-                                        <Input id="password" type="password" placeholder="আপনার পাসওয়ার্ড দিন" value={efootballDetails.password} onChange={(e) => setEfootballDetails(prev => ({ ...prev, password: e.target.value }))} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
-                                        <Input id="whatsappNumber" placeholder="আপনার হোয়াটসঅ্যাপ নম্বর দিন" value={efootballDetails.whatsappNumber} onChange={(e) => setEfootballDetails(prev => ({ ...prev, whatsappNumber: e.target.value }))} />
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="uid">{uidLabel}</Label>
-                                        <Input id="uid" placeholder={uidPlaceholder} value={uid} onChange={(e) => { setUid(e.target.value); }} />
-                                    </div>
-                                    {savedUids.length > 0 && (
-                                        <div className="mt-3 space-y-2">
-                                            <Label className="text-xs text-muted-foreground">আপনার সংরক্ষিত আইডি</Label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {savedUids.map((saved, index) => (
-                                                    <Button
-                                                        key={index}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-auto"
-                                                        onClick={() => setUid(saved.uid)}
-                                                    >
-                                                        <Star className="mr-2 h-4 w-4 text-yellow-400" />
-                                                        <div>
-                                                            <p className="font-semibold text-left">{saved.game}</p>
-                                                            <p className="text-xs text-muted-foreground font-mono">{saved.uid}</p>
-                                                        </div>
-                                                    </Button>
-                                                ))}
-                                            </div>
+                        card.serviceType === 'Social Media' ? (
+                            <>
+                                <SectionCard title="Select Service" step="1">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="socialService">Service</Label>
+                                            <select
+                                                id="socialService"
+                                                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                                                value={selectedOption?.name || ''}
+                                                onChange={(e) => {
+                                                    const option = card.options?.find(o => o.name === e.target.value);
+                                                    if (option) {
+                                                        setSelectedOption(option);
+                                                    }
+                                                }}
+                                            >
+                                                <option value="">Select a service</option>
+                                                {card.options?.map((option) => {
+                                                    const stockLimit = option.stockLimit ?? 0;
+                                                    const soldCount = option.stockSoldCount ?? 0;
+                                                    const hasFiniteStock = typeof stockLimit === 'number' && stockLimit > 0;
+                                                    const isOutOfStock = hasFiniteStock && soldCount >= stockLimit;
+                                                    const isManuallyOutOfStock = option.inStock === false;
+                                                    const isDisabled = isOutOfStock || isManuallyOutOfStock;
+
+                                                    return (
+                                                        <option key={option.name} value={option.name} disabled={isDisabled}>
+                                                            {hasFiniteStock ? `[${stockLimit - soldCount}] ` : ''}
+                                                            {option.name} - ৳{option.price}
+                                                            {isDisabled ? ' (Stock Out)' : ''}
+                                                        </option>
+                                                    );
+                                                })}
+                                            </select>
                                         </div>
-                                    )}
-                                </>
-                            )}
-                        </SectionCard>
+                                    </div>
+                                </SectionCard>
+
+                                <SectionCard title="Link" step="2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="socialLink">Social Media Profile Link</Label>
+                                        <Input
+                                            id="socialLink"
+                                            placeholder="Enter your social media profile URL"
+                                            value={socialMediaLink}
+                                            onChange={(e) => setSocialMediaLink(e.target.value)}
+                                        />
+                                    </div>
+                                </SectionCard>
+
+                                <SectionCard title="Quantity" step="3">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="socialQuantity">Quantity</Label>
+                                        <Input
+                                            id="socialQuantity"
+                                            type="number"
+                                            min={minQuantity}
+                                            max={maxQuantity}
+                                            value={socialMediaQuantity}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val === '') {
+                                                    setSocialMediaQuantity('');
+                                                } else {
+                                                    const num = parseInt(val);
+                                                    setSocialMediaQuantity(isNaN(num) ? '' : Math.min(Math.max(num, 0), maxQuantity));
+                                                }
+                                            }}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Min: {minQuantity} - Max: {maxQuantity.toLocaleString()}
+                                        </p>
+                                    </div>
+                                </SectionCard>
+
+                                <SectionCard title="Charge" step="4">
+                                    <div className="text-center py-4">
+                                        <p className="text-2xl font-bold text-primary">
+                                            ৳{(() => {
+                                                if (!selectedOption || !socialMediaQuantity) return '0.00';
+                                                const qty = typeof socialMediaQuantity === 'number' ? socialMediaQuantity : 0;
+                                                // Formula: (price / 1000) × quantity
+                                                const totalPrice = (selectedOption.price / 1000) * qty;
+                                                return totalPrice.toFixed(2);
+                                            })()}
+                                        </p>
+                                    </div>
+                                </SectionCard>
+                            </>
+                        ) : (
+                            <SectionCard title="অ্যাকাউন্ট তথ্য" step={hasOptions ? "২" : "১"}>
+                                {card.serviceType === 'eFootball' ? (
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="konamiId">Konami ID</Label>
+                                            <Input id="konamiId" placeholder="আপনার Konami ID দিন" value={efootballDetails.konamiId} onChange={(e) => setEfootballDetails(prev => ({ ...prev, konamiId: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="password">Password</Label>
+                                            <Input id="password" type="password" placeholder="আপনার পাসওয়ার্ড দিন" value={efootballDetails.password} onChange={(e) => setEfootballDetails(prev => ({ ...prev, password: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+                                            <Input id="whatsappNumber" placeholder="আপনার হোয়াটসঅ্যাপ নম্বর দিন" value={efootballDetails.whatsappNumber} onChange={(e) => setEfootballDetails(prev => ({ ...prev, whatsappNumber: e.target.value }))} />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="uid">{uidLabel}</Label>
+                                            <Input id="uid" placeholder={uidPlaceholder} value={uid} onChange={(e) => { setUid(e.target.value); }} />
+                                        </div>
+                                        {savedUids.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                <Label className="text-xs text-muted-foreground">আপনার সংরক্ষিত আইডি</Label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {savedUids.map((saved, index) => (
+                                                        <Button
+                                                            key={index}
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-auto"
+                                                            onClick={() => setUid(saved.uid)}
+                                                        >
+                                                            <Star className="mr-2 h-4 w-4 text-yellow-400" />
+                                                            <div>
+                                                                <p className="font-semibold text-left">{saved.game}</p>
+                                                                <p className="text-xs text-muted-foreground font-mono">{saved.uid}</p>
+                                                            </div>
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </SectionCard>
+                        )
                     )}
 
-                    {card.serviceType !== 'eFootball' && (
+                    {card.serviceType !== 'eFootball' && card.serviceType !== 'Social Media' && (
                         <SectionCard title="পরিমাণ নির্বাচন করুন" step={hasOptions ? "৩" : "২"}>
                             <div className="flex items-center justify-center gap-4">
                                 <Button
@@ -909,7 +1033,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                 </div>
 
                 <div className="space-y-6">
-                    <SectionCard title="পেমেন্ট নির্বাচন করুন" step={hasOptions ? "৪" : "৩"}>
+                    <SectionCard title="পেমেন্ট নির্বাচন করুন" step={card.serviceType === 'Social Media' ? "5" : (hasOptions ? "৪" : "৩")}>
                         {card.purchaseType === 'Free' ? (
                             // Free cards - Coin Fund only
                             <div className="space-y-4">
@@ -1022,8 +1146,21 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
 
                             <div className={cn("space-y-2", card.purchaseType !== 'Free' && "mt-4")}>
                                 <div className="flex justify-between">
-                                    <span>{selectedOption ? selectedOption.name : card.name} x {quantity}</span>
-                                    <span>৳{totalPrice.toFixed(2)}</span>
+                                    <span>
+                                        {card.serviceType === 'Social Media'
+                                            ? `${selectedOption?.name || card.name} ${socialMediaQuantity || 0}`
+                                            : `${selectedOption ? selectedOption.name : card.name} x ${quantity}`
+                                        }
+                                    </span>
+                                    <span>
+                                        ৳{card.serviceType === 'Social Media'
+                                            ? (() => {
+                                                const qty = typeof socialMediaQuantity === 'number' ? socialMediaQuantity : 0;
+                                                return ((selectedOption?.price || 0) / 1000 * qty).toFixed(2);
+                                            })()
+                                            : totalPrice.toFixed(2)
+                                        }
+                                    </span>
                                 </div>
                                 {discount > 0 && (
                                     <div className="flex justify-between text-green-600">
@@ -1033,7 +1170,15 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                                 )}
                                 <div className="flex justify-between font-bold text-lg">
                                     <span>মোট</span>
-                                    <span>৳{finalPrice.toFixed(2)}</span>
+                                    <span>
+                                        ৳{card.serviceType === 'Social Media'
+                                            ? (() => {
+                                                const qty = typeof socialMediaQuantity === 'number' ? socialMediaQuantity : 0;
+                                                return ((selectedOption?.price || 0) / 1000 * qty).toFixed(2);
+                                            })()
+                                            : finalPrice.toFixed(2)
+                                        }
+                                    </span>
                                 </div>
                             </div>
 

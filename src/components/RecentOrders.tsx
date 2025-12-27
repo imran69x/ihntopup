@@ -147,7 +147,23 @@ export default function RecentOrders() {
                     {order.paymentMethod === 'CoinFund' && (
                       <Image src="/coin-icon.png" alt="Coin" width={14} height={14} className="w-3.5 h-3.5" />
                     )}
-                    {order.productName} - {order.productOption} {order.quantity > 1 && <span className='font-bold text-primary'>(x{order.quantity})</span>}
+                    {order.productName} - {order.productOption} {order.quantity > 1 && (() => {
+                      // Check if social media order (new orders have serviceType, old orders check by name)
+                      const isSocialMedia = order.serviceType === 'Social Media' ||
+                        (order.productName?.toUpperCase().includes('FACEBOOK') ||
+                          order.productName?.toUpperCase().includes('INSTAGRAM') ||
+                          order.productName?.toUpperCase().includes('TIKTOK') ||
+                          order.productName?.toUpperCase().includes('YOUTUBE') ||
+                          order.productName?.toUpperCase().includes('TWITTER') ||
+                          order.productName?.toUpperCase().includes('FOLLOW') ||
+                          order.productName?.toUpperCase().includes('LIKE'));
+
+                      return (
+                        <span className='font-bold text-primary'>
+                          ({isSocialMedia ? '' : 'x'}{order.quantity})
+                        </span>
+                      );
+                    })()}
                   </p>
                 </div>
                 <div className="text-right">

@@ -266,6 +266,7 @@ function SidebarNav({ isMobile = false, onLinkClick }: { isMobile?: boolean, onL
       <CollapsibleNavItem icon={CreditCard} title="Top-Up" pathname={pathname} defaultOpen={pathname.startsWith('/admin/topup')}>
         <SubNavItem href="/admin/topup/categories" pathname={pathname} onClick={handleLinkClick}>Categories</SubNavItem>
         <SubNavItem href="/admin/topup/cards" pathname={pathname} onClick={handleLinkClick}>Cards</SubNavItem>
+        <SubNavItem href="/admin/topup/social-media" pathname={pathname} onClick={handleLinkClick}>Social Media</SubNavItem>
       </CollapsibleNavItem>
 
       <NavItem href="/admin/reseller-cards" icon={Package} pathname={pathname} onClick={handleLinkClick}>Reseller Cards</NavItem>

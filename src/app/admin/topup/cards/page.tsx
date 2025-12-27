@@ -92,6 +92,10 @@ export default function TopupCardsPage() {
   const { data: cards, isLoading: isLoadingCards } = useCollection<TopUpCardData>(cardsQuery);
   const { data: categories, isLoading: isLoadingCategories } = useCollection<TopUpCategory>(categoriesQuery);
 
+  const filteredCategories = React.useMemo(() => {
+    return categories?.filter(cat => cat.name !== 'SOCIAL MEDIA SERVICE') || [];
+  }, [categories]);
+
   const {
     register,
     control,
@@ -124,12 +128,14 @@ export default function TopupCardsPage() {
 
   const handleEdit = (card: TopUpCardData) => {
     setEditingCard(card)
+    // Ensure serviceType is compatible with CardFormValues
+    const serviceType = (card.serviceType === 'Social Media') ? 'Others' : (card.serviceType || 'Game');
     reset({
       name: card.name,
       description: card.description || '',
       imageUrl: card.image?.src || '',
       categoryId: card.categoryId,
-      serviceType: card.serviceType || 'Game',
+      serviceType: serviceType as 'Game' | 'Others' | 'eFootball' | 'Subscriptions',
       purchaseType: card.purchaseType || 'Paid',
       isActive: card.isActive ?? true,
       price: card.price,
@@ -263,7 +269,7 @@ export default function TopupCardsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cards?.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)).map((card) => (
+                {cards?.filter(card => card.serviceType !== 'Social Media').sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)).map((card) => (
                   <TableRow key={card.id}>
                     <TableCell className="sm:table-cell">
                       <Image
@@ -372,7 +378,7 @@ export default function TopupCardsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="reseller">রিসেলার পেজ (Reseller Page)</SelectItem>
-                        {categories?.map(cat => (
+                        {filteredCategories?.map(cat => (
                           <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                         ))}
                       </SelectContent>

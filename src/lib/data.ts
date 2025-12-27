@@ -53,7 +53,7 @@ export type TopUpCardData = {
     hint: string;
   };
   price: number;
-  serviceType?: 'Game' | 'Others' | 'eFootball' | 'Subscriptions';
+  serviceType?: 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'Social Media';
   purchaseType?: 'Paid' | 'Free'; // Free = Coin only, Paid = Wallet/Instant
   isResellerProduct?: boolean; // True = Only for resellers
   cardType?: 'normal' | 'unipin_only'; // Type of reseller card
@@ -116,6 +116,7 @@ export type Order = {
     password?: string;
     whatsappNumber: string;
   }
+  serviceType?: 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'Social Media'; // Added to identify order type
   isResellerProduct?: boolean; // Added this field
   allocatedCodes?: string[]; // Unipin codes assigned to this order
   // Telegram processing metadata
