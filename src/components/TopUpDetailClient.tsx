@@ -1080,7 +1080,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                                             paymentMethod === 'wallet' ? 'border-primary' : 'border-input bg-background hover:bg-muted'
                                         )}
                                     >
-                                        <div className="relative w-full flex-grow p-4 flex items-center justify-center min-h-[80px]">
+                                        <div className="relative w-full flex-grow p-4 flex items-center justify-center min-h-[140px]">
                                             <Image src="/og-image.png" alt="My Wallet" layout="fill" className="object-contain p-4 rounded-lg" />
                                         </div>
                                         <div className={cn(
