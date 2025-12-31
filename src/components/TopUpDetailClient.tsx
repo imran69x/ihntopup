@@ -1069,7 +1069,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                             // Paid cards - Normal payment methods
                             <>
                                 <div className={cn(
-                                    "grid gap-4",
+                                    "grid gap-2",
                                     // Hide Instant Pay for Unipin Voucher [BD] and reseller products
                                     card.name === 'Unipin Voucher [BD]' || card.isResellerProduct ? "grid-cols-1" : "grid-cols-2"
                                 )}>
@@ -1080,8 +1080,8 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                                             paymentMethod === 'wallet' ? 'border-primary' : 'border-input bg-background hover:bg-muted'
                                         )}
                                     >
-                                        <div className="relative w-full flex-grow p-2 flex items-center justify-center min-h-[140px]">
-                                            <Image src="/og-image.png" alt="My Wallet" layout="fill" className="object-contain p-2 rounded-lg" />
+                                        <div className="relative w-full flex-grow p-4 flex items-center justify-center min-h-[140px]">
+                                            <Image src="/wallet.png" alt="My Wallet" layout="fill" className="object-contain p-4 rounded-lg" />
                                         </div>
                                         <div className={cn(
                                             "p-2 text-center w-full text-sm font-semibold",
