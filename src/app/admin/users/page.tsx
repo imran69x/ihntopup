@@ -231,7 +231,8 @@ export default function UsersPage() {
     if (!searchTerm) return users;
     return users.filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.uniqueId && user.uniqueId.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [users, searchTerm]);
 
@@ -285,7 +286,7 @@ export default function UsersPage() {
               <div className="relative mt-2">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="নাম বা ইমেইল দিয়ে খুঁজুন..."
+                  placeholder="নাম, ইমেইল বা ID দিয়ে খুঁজুন..."
                   className="pl-8 w-full"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
