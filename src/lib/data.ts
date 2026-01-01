@@ -23,6 +23,7 @@ export type User = {
   isReseller?: boolean;
   photoURL?: string;
   points?: number;
+  spinData?: UserSpinData; // Spin wheel tracking data
   createdAt?: any;
 }
 
@@ -259,6 +260,46 @@ export type BalanceTransfer = {
   fee: number;
   amountReceived: number;
   transferDate: string;
+};
+
+export type SpinWheelConfig = {
+  id: string;
+  isEnabled: boolean;              // Global ON/OFF
+  autoEnableDay: number;           // 0=Sunday, 1=Monday, ..., 5=Friday
+  manualOverride: boolean;         // Admin manual ON/OFF
+  spinLimitPerWeek: number;        // Default: e.g., 3
+  currentWeekStart: any;           // Timestamp for tracking week reset
+};
+
+export type SpinWheelItem = {
+  id: string;
+  name: string;                    // e.g., "৳50 Wallet Bonus"
+  type: 'wallet' | 'coins' | 'discount' | 'item';
+  value: number;                   // Amount or percentage
+  imageUrl?: string;               // Optional item image
+  color: string;                   // Wheel segment color
+  probability: number;             // Weight for random selection (1-100)
+
+  // Eligibility toggles
+  isEligibleForNormal: boolean;
+  isEligibleForVerified: boolean;
+  isEligibleForDummy: boolean;
+
+  isActive: boolean;               // Can be disabled without deletion
+  createdAt: any;
+  updatedAt: any;
+};
+
+export type UserSpinData = {
+  currentWeekSpins: number;        // Spins done this week
+  lastSpinDate: any;               // Last spin timestamp
+  totalLifetimeSpins: number;      // All-time spin count
+  lastRewardWon?: {                // Last reward details
+    itemId: string;
+    itemName: string;
+    value: number;
+    wonAt: any;
+  };
 };
 
 export type ResellerApplication = {

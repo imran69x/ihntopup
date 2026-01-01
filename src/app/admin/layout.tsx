@@ -270,7 +270,7 @@ function SidebarNav({ isMobile = false, onLinkClick }: { isMobile?: boolean, onL
       </CollapsibleNavItem>
 
       <NavItem href="/admin/reseller-cards" icon={Package} pathname={pathname} onClick={handleLinkClick}>Reseller Cards</NavItem>
-      <NavItem href="/admin/reseller-requests" icon={Users} pathname={pathname} onClick={handleLinkClick}>Reseller Requests</NavItem>
+      <NavItem href="/admin/wallet-requests" icon={Wallet} pathname={pathname} onClick={handleLinkClick}>Wallet Requests</NavItem>
 
       <CollapsibleNavItem icon={ArrowLeftRight} title="Transactions" pathname={pathname} defaultOpen={pathname.startsWith('/admin/transactions')}>
         <SubNavItem href="/admin/transactions/orders" pathname={pathname} onClick={handleLinkClick}>Order Transactions</SubNavItem>

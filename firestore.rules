@@ -156,6 +156,26 @@ service cloud.firestore {
       allow read, update, create: if isUserAuthenticated();
     }
 
+    // =================================================================================
+    // Spin Wheel System (TEMPORARILY OPEN FOR TESTING)
+    // =================================================================================
+    
+    match /spinWheelConfig/{document=**} {
+      // TEMPORARILY: Allow everyone (for debugging)
+      allow read, write: if true;
+    }
+
+    match /spinWheelItems/{document=**} {
+      // TEMPORARILY: Allow everyone (for debugging)
+      allow read, write: if true;
+    }
+
+    match /spinHistory/{document=**} {
+      // Anyone can read spin history
+      allow read: if true;
+      // Only server can write (via admin SDK)
+      allow write: if false;
+    }
 
     // Fallback: Deny everything else by default (implicit in Firestore, but good practice to be aware)
   }

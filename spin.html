@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spin Wheel</title>
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    background:#0b3d2e;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.card{
+    background:#0f5132;
+    padding:25px 30px 35px;
+    border-radius:24px;
+    box-shadow:0 25px 60px rgba(0,0,0,.45);
+    text-align:center;
+    width:360px;
+}
+
+h1{
+    color:#eafff3;
+    margin-bottom:15px;
+    letter-spacing:1px;
+}
+
+.wheel-area{
+    position:relative;
+    width:260px;
+    height:260px;
+    margin:0 auto;
+}
+
+.pointer{
+    position:absolute;
+    top:-14px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:14px solid transparent;
+    border-right:14px solid transparent;
+    border-bottom:26px solid #eafff3;
+    z-index:5;
+}
+
+.wheel{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    border:6px solid #eafff3;
+    position:relative;
+    overflow:hidden;
+    transition:transform 4.5s cubic-bezier(.17,.67,.12,1);
+}
+
+.slice{
+    position:absolute;
+    width:50%;
+    height:50%;
+    top:50%;
+    left:50%;
+    transform-origin:0% 0%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:14px;
+    font-weight:600;
+    text-align:center;
+}
+
+.slice span{
+    transform:rotate(-60deg);
+    width:90px;
+}
+
+/* colors */
+.c1{background:#1b5e20;}
+.c2{background:#2e7d32;}
+.c3{background:#388e3c;}
+.c4{background:#43a047;}
+.c5{background:#4caf50;}
+.c6{background:#66bb6a;}
+
+button{
+    margin-top:22px;
+    padding:12px 34px;
+    border:none;
+    border-radius:40px;
+    font-size:17px;
+    font-weight:700;
+    background:#eafff3;
+    color:#0f5132;
+    cursor:pointer;
+}
+
+button:active{
+    transform:scale(.96);
+}
+
+/* popup */
+.popup{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+
+.popup-box{
+    background:#eafff3;
+    color:#0f5132;
+    padding:28px;
+    border-radius:20px;
+    width:280px;
+    text-align:center;
+    animation:pop .35s ease;
+}
+
+.popup-box h2{
+    margin-bottom:10px;
+}
+
+.popup-box button{
+    background:#0f5132;
+    color:#fff;
+    margin-top:14px;
+}
+
+@keyframes pop{
+    from{transform:scale(.7);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Spin & Win</h1>
+
+    <div class="wheel-area">
+        <div class="pointer"></div>
+
+        <div class="wheel" id="wheel">
+            <div class="slice c1" style="transform:rotate(0deg) skewY(-30deg)">
+                <span>10 Coins</span>
+            </div>
+            <div class="slice c2" style="transform:rotate(60deg) skewY(-30deg)">
+                <span>20 Coins</span>
+            </div>
+            <div class="slice c3" style="transform:rotate(120deg) skewY(-30deg)">
+                <span>50 Coins</span>
+            </div>
+            <div class="slice c4" style="transform:rotate(180deg) skewY(-30deg)">
+                <span>Try Again</span>
+            </div>
+            <div class="slice c5" style="transform:rotate(240deg) skewY(-30deg)">
+                <span>Free Spin</span>
+            </div>
+            <div class="slice c6" style="transform:rotate(300deg) skewY(-30deg)">
+                <span>100 Coins</span>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="spin()">SPIN</button>
+</div>
+
+<div class="popup" id="popup">
+    <div class="popup-box">
+        <h2>🎉 You Won</h2>
+        <p id="result"></p>
+        <button onclick="closePop()">OK</button>
+    </div>
+</div>
+
+<script>
+const rewards=[
+  "10 Coins",
+  "20 Coins",
+  "50 Coins",
+  "Try Again",
+  "Free Spin",
+  "100 Coins"
+];
+
+let rotation=0;
+
+function spin(){
+    const wheel=document.getElementById("wheel");
+    const rand=Math.floor(Math.random()*360);
+    rotation+=360*6+rand;
+    wheel.style.transform=`rotate(${rotation}deg)`;
+
+    const index=Math.floor((360-(rand%360))/60)%6;
+
+    setTimeout(()=>{
+        document.getElementById("result").innerText=rewards[index];
+        document.getElementById("popup").style.display="flex";
+    },4500);
+}
+
+function closePop(){
+    document.getElementById("popup").style.display="none";
+}
+</script>
+
+</body>
+</html>

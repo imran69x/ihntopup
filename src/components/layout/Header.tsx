@@ -35,8 +35,8 @@ export default function Header() {
     ];
 
     const loggedInNavItems = [
-      ...baseNavItems,
-      { href: '/orders', label: 'My Orders' },
+      { href: '/topup', label: 'Top Up' },
+      { href: '/orders', label: 'Orders' },
       { href: '/support', label: 'Support' },
     ];
 
@@ -66,24 +66,24 @@ export default function Header() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center">
-  {/* Light mode logo */}
-  <Image
-    src="/logo-light.png"
-    alt="IHN TOPUP Logo"
-    width={240}
-    height={126}
-    className="h-14 sm:h-16 md:h-18 w-auto dark:hidden"
-  />
+              {/* Light mode logo */}
+              <Image
+                src="/logo-light.png"
+                alt="IHN TOPUP Logo"
+                width={240}
+                height={126}
+                className="h-14 sm:h-16 md:h-18 w-auto dark:hidden"
+              />
 
-  {/* Dark mode logo */}
-  <Image
-    src="/logo-dark.png"
-    alt="IHN TOPUP Logo"
-    width={240}
-    height={126}
-    className="h-14 sm:h-16 md:h-18 w-auto hidden dark:block"
-  />
-</Link>
+              {/* Dark mode logo */}
+              <Image
+                src="/logo-dark.png"
+                alt="IHN TOPUP Logo"
+                width={240}
+                height={126}
+                className="h-14 sm:h-16 md:h-18 w-auto hidden dark:block"
+              />
+            </Link>
           </div>
 
           <nav className="hidden md:flex flex-1 items-center justify-center gap-4">

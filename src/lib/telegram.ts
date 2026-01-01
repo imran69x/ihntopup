@@ -103,11 +103,51 @@ export function buildOrderActionKeyboard(orderId: string) {
         inline_keyboard: [
             [
                 { text: '✅ Approve', callback_data: `order_action:Completed:${orderId}` },
-                { text: '❌ Reject', callback_data: `order_action:Cancelled:${orderId}` }
+                { text: '⏳ Processing', callback_data: `order_action:Processing:${orderId}` }
             ],
             [
-                { text: '💰 Refund', callback_data: `order_action:Refunded:${orderId}` },
-                { text: '⏳ Processing', callback_data: `order_action:Processing:${orderId}` }
+                { text: '❌ Reject', callback_data: `order_reject:${orderId}` },
+                { text: '💰 Refund', callback_data: `order_refund:${orderId}` }
+            ]
+        ]
+    };
+}
+
+// Build rejection reason keyboard
+export function buildRejectReasonKeyboard(orderId: string) {
+    return {
+        inline_keyboard: [
+            [
+                { text: '📱 Wrong Info', callback_data: `order_action:Cancelled:${orderId}:Wrong sender number or transaction ID` }
+            ],
+            [
+                { text: '📦 Stock Unavailable', callback_data: `order_action:Cancelled:${orderId}:Stock not available` }
+            ],
+            [
+                { text: '🔧 Maintenance', callback_data: `order_action:Cancelled:${orderId}:Website in maintenance` }
+            ],
+            [
+                { text: '« Back', callback_data: `order_back:${orderId}` }
+            ]
+        ]
+    };
+}
+
+// Build refund reason keyboard
+export function buildRefundReasonKeyboard(orderId: string) {
+    return {
+        inline_keyboard: [
+            [
+                { text: '📱 Wrong Info', callback_data: `order_action:Refunded:${orderId}:Wrong sender number or transaction ID` }
+            ],
+            [
+                { text: '📦 Stock Unavailable', callback_data: `order_action:Refunded:${orderId}:Stock not available` }
+            ],
+            [
+                { text: '🔧 Maintenance', callback_data: `order_action:Refunded:${orderId}:Website in maintenance` }
+            ],
+            [
+                { text: '« Back', callback_data: `order_back:${orderId}` }
             ]
         ]
     };
@@ -166,7 +206,7 @@ export function formatOrderNotification(order: any, isReseller: boolean = false)
     const type = isReseller ? '🔷 RESELLER ORDER' : '🛒 NEW ORDER';
 
     let message = `${type}\n\n`;
-    message += `📦 <b>Order ID:</b> <code>${order.id || 'N/A'}</code>\n`;
+    message += `📦 <b>Order ID:</b> <code>#${order.orderId || 'N/A'}</code>\n`;
     message += `👤 <b>Customer:</b> ${order.userName || 'Unknown'}\n`;
     message += `🎮 <b>Product:</b> ${order.productName || 'N/A'}\n`;
     message += `📋 <b>Option:</b> ${order.productOption || 'Standard'}\n`;
