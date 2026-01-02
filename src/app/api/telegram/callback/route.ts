@@ -176,7 +176,6 @@ export async function POST(request: NextRequest) {
                 }
 
                 console.log(`\n🔄 Processing order ${orderId} as ${newStatus}`);
-                if (reason) console.log(`📝 Reason: ${reason}`);
 
                 // Process order based on status
                 try {
