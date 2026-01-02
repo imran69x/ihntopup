@@ -61,16 +61,6 @@ export default function BalanceTransferDialog({
       return;
     }
 
-    // BAN CHECK - Prevent banned users from transferring balance
-    if (appUser?.isBanned === true) {
-      toast({
-        variant: 'destructive',
-        title: 'অ্যাকাউন্ট নিষিদ্ধ',
-        description: 'আপনার অ্যাকাউন্ট নিষিদ্ধ করা হয়েছে। কোনো লেনদেন করা সম্ভব নয়।',
-      });
-      return;
-    }
-
     if (!recipientUniqueId || !amount || Number(amount) < 1) {
       toast({ variant: 'destructive', title: 'অবৈধ তথ্য', description: 'অনুগ্রহ করে সঠিক প্রাপকের ইউনিক আইডি এবং টাকার পরিমাণ লিখুন।' });
       return;

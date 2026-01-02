@@ -294,17 +294,6 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
     const handleWalletPayment = async () => {
         if (!isLoggedIn || !firebaseUser || !firestore || !appUser || !selectedOption) return;
 
-        // BAN CHECK - Prevent banned users from making orders
-        if (appUser.isBanned === true) {
-            toast({
-                variant: 'destructive',
-                title: 'অ্যাকাউন্ট নিষিদ্ধ',
-                description: 'আপনার অ্যাকাউন্ট নিষিদ্ধ করা হয়েছে। কোনো লেনদেন করা সম্ভব নয়।',
-            });
-            setIsProcessing(false);
-            return;
-        }
-
         setIsProcessing(true);
 
         const newOrderData = createOrderObject('Wallet');
@@ -524,17 +513,6 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
     const handleCoinFundPayment = async () => {
         if (!isLoggedIn || !firebaseUser || !firestore || !appUser || !selectedOption) return;
 
-        // BAN CHECK - Prevent banned users from using coin fund
-        if (appUser.isBanned === true) {
-            toast({
-                variant: 'destructive',
-                title: 'অ্যাকাউন্ট নিষিদ্ধ',
-                description: 'আপনার অ্যাকাউন্ট নিষিদ্ধ করা হয়েছে। কোনো লেনদেন করা সম্ভব নয়।',
-            });
-            setIsProcessing(false);
-            return;
-        }
-
         setIsProcessing(true);
 
         const newOrderData = createOrderObject('CoinFund');
@@ -648,16 +626,6 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
     const handleOrderNowClick = async () => {
         if (!isLoggedIn) {
             router.push('/login');
-            return;
-        }
-
-        // BAN CHECK - Block all order attempts
-        if (appUser?.isBanned === true) {
-            toast({
-                variant: 'destructive',
-                title: 'অ্যাকাউন্ট নিষিদ্ধ',
-                description: 'আপনার অ্যাকাউন্ট নিষিদ্ধ করা হয়েছে। কোনো অর্ডার করা সম্ভব নয়।',
-            });
             return;
         }
 

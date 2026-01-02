@@ -162,28 +162,16 @@ export default function WalletPage() {
             </div>
             <div className="relative z-10 grid grid-cols-2 gap-4 mt-6">
               <Button
-                onClick={() => {
-                  if (appUser?.isBanned === true) {
-                    return; // Silently block - main popup will show
-                  }
-                  setIsAddMoneyOpen(true);
-                }}
-                disabled={appUser?.isBanned === true}
-                className="bg-white text-green-600 hover:bg-green-100 h-12 shadow-lg text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setIsAddMoneyOpen(true)}
+                className="bg-white text-green-600 hover:bg-green-100 h-12 shadow-lg text-base font-bold"
               >
                 <Plus className="mr-2 h-5 w-5" />
                 Add Money
               </Button>
               <Button
-                onClick={() => {
-                  if (appUser?.isBanned === true) {
-                    return; // Silently block - main popup will show
-                  }
-                  setIsTransferOpen(true);
-                }}
-                disabled={appUser?.isBanned === true}
+                onClick={() => setIsTransferOpen(true)}
                 variant="secondary"
-                className="bg-white/20 text-white hover:bg-white/30 h-12 shadow-lg text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-white/20 text-white hover:bg-white/30 h-12 shadow-lg text-base font-bold"
               >
                 <Send className="mr-2 h-5 w-5" />
                 Transfer Balance

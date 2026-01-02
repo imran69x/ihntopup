@@ -1,10 +1,11 @@
 'use client';
 import TopUpCard from '@/components/TopUpCard';
+import ScratchCard from '@/components/ScratchCard';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { TopUpCategory, TopUpCardData } from '@/lib/data';
-import { collection, query, getDocs } from 'firebase/firestore';
+import type { TopUpCategory, TopUpCardData, ScratchCardConfig } from '@/lib/data';
+import { collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
 import { useMemo, useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Gift } from 'lucide-react';
 
 export default function TopUpPage() {
   const firestore = useFirestore();
@@ -14,6 +15,8 @@ export default function TopUpPage() {
 
   const [cardsByCategory, setCardsByCategory] = useState<Record<string, TopUpCardData[]>>({});
   const [isLoadingCards, setIsLoadingCards] = useState(true);
+  const [scratchCards, setScratchCards] = useState<ScratchCardConfig[]>([]);
+  const [isLoadingScratchCards, setIsLoadingScratchCards] = useState(true);
 
   const categories = useMemo(() => {
     if (!allCategories) return [];
@@ -48,6 +51,26 @@ export default function TopUpPage() {
     }
   }, [firestore, categories, isLoadingCategories]);
 
+  // Fetch scratch cards
+  useEffect(() => {
+    if (firestore) {
+      const fetchScratchCards = async () => {
+        setIsLoadingScratchCards(true);
+        // Fetch the single default scratch card
+        const defaultCardRef = doc(firestore, 'scratch_cards', 'default');
+        const defaultCardDoc = await getDoc(defaultCardRef);
+        if (defaultCardDoc.exists() && defaultCardDoc.data()?.isActive) {
+          const cardData = { ...defaultCardDoc.data(), id: defaultCardDoc.id } as ScratchCardConfig;
+          setScratchCards([cardData]);
+        } else {
+          setScratchCards([]);
+        }
+        setIsLoadingScratchCards(false);
+      };
+      fetchScratchCards();
+    }
+  }, [firestore]);
+
   const isLoading = isLoadingCategories || isLoadingCards;
 
   return (
@@ -57,6 +80,22 @@ export default function TopUpPage() {
         <div className="flex justify-center items-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : (
         <div className="space-y-8">
+          {/* Scratch Cards Section */}
+          {!isLoadingScratchCards && scratchCards.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold font-headline mb-4 flex items-center gap-2">
+                <Gift className="h-6 w-6 text-yellow-500" />
+                স্ক্র্যাচ কার্ড (Scratch Cards)
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-8 gap-2 sm:gap-4">
+                {scratchCards.map((card) => (
+                  <ScratchCard key={card.id} card={card} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Regular Categories */}
           {categories?.map((category) => (
             <section key={category.id}>
               <h2 className="text-2xl font-bold font-headline mb-4">{category.name}</h2>

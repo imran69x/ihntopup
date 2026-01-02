@@ -177,6 +177,26 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // =================================================================================
+    // Scratch Card System
+    // =================================================================================
+    
+    match /scratch_card_rewards/{rewardId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /scratch_cards/{cardId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /scratch_card_claims/{claimId} {
+      allow read: if isUserAuthenticated();
+      allow create: if isUserAuthenticated();
+      allow update: if isAdmin() || (isUserAuthenticated() && request.auth.uid == resource.data.userId);
+    }
+
     // Fallback: Deny everything else by default (implicit in Firestore, but good practice to be aware)
   }
 }

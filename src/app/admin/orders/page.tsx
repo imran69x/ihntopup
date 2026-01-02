@@ -267,7 +267,13 @@ export default function OrdersPage() {
             const coinReward = selectedOrder.totalAmount * 0.1;
             const currentCoinFund = userData.coinFund || 0;
             transaction.update(userDocRef, {
-              coinFund: currentCoinFund + coinReward
+              coinFund: currentCoinFund + coinReward,
+              isActive: true // Activate user when their first order is completed
+            });
+          } else {
+            // For reseller products, just activate the user
+            transaction.update(userDocRef, {
+              isActive: true // Activate user when their first order is completed
             });
           }
 

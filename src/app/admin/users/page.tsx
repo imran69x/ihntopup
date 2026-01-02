@@ -9,7 +9,8 @@ import {
   Loader2,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -91,7 +92,7 @@ export default function UsersPage() {
   const [coinFund, setCoinFund] = React.useState<number | string>('');
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [telegramUserId, setTelegramUserId] = React.useState(''); // Add Telegram User ID
-  const [isBanned, setIsBanned] = React.useState(false);
+  const [isActive, setIsActive] = React.useState(true);
   const [isReseller, setIsReseller] = React.useState(false);
   const [hasVerifiedBadge, setHasVerifiedBadge] = React.useState(false);
 
@@ -104,6 +105,30 @@ export default function UsersPage() {
   const usersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
   const { data: users, isLoading } = useCollection<UserData>(usersQuery);
   const { toast } = useToast();
+  const [isResetting, setIsResetting] = React.useState(false);
+
+  const handleWeeklyReset = async () => {
+    try {
+      if (!confirm('আপনি কি নিশ্চিত যে আপনি সমস্ত সক্রিয় ব্যবহারকারীদের নিষ্ক্রিয় করতে চান? এটি একটি সাপ্তাহিক রিসেট প্রক্রিয়া।')) return;
+
+      setIsResetting(true);
+      const response = await fetch('/api/cron/weekly-reset?key=weekly_reset_secure_key_123');
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'সফল',
+          description: `সাপ্তাহিক রিসেট সম্পন্ন হয়েছে। ${data.count} জন ব্যবহারকারীকে নিষ্ক্রিয় করা হয়েছে।`
+        });
+      } else {
+        toast({ variant: 'destructive', title: 'ত্রুটি', description: data.error || 'রিসেট করতে ব্যর্থ হয়েছে' });
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'ত্রুটি', description: 'সার্ভারে সংযোগ করতে ব্যর্থ হয়েছে' });
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   // Opens the view details dialog
   const handleViewDetails = (user: UserData) => {
@@ -121,7 +146,7 @@ export default function UsersPage() {
     setCoinFund(user.coinFund ?? 0);
     setIsAdmin(user.isAdmin ?? false);
     setTelegramUserId(user.telegramUserId ?? ''); // Load Telegram User ID
-    setIsBanned(user.isBanned ?? false);
+    setIsActive(user.isActive ?? true);
     setIsReseller(user.isReseller ?? false);
     setHasVerifiedBadge(user.hasVerifiedBadge ?? false);
     setIsEditOpen(true);
@@ -159,7 +184,7 @@ export default function UsersPage() {
       coinFund: coinFundAsNumber,
       isAdmin,
       telegramUserId: telegramUserId.trim() || null, // Save Telegram User ID (null if empty)
-      isBanned,
+      isActive,
       isReseller,
       hasVerifiedBadge
     });
@@ -272,6 +297,18 @@ export default function UsersPage() {
               <File className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                 এক্সপোর্ট
+              </span>
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="h-8 gap-1"
+              onClick={handleWeeklyReset}
+              disabled={isResetting}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                সাপ্তাহিক রিসেট
               </span>
             </Button>
           </div>
@@ -410,7 +447,7 @@ export default function UsersPage() {
             {viewingUser?.isAdmin && viewingUser?.telegramUserId && (
               <DetailRow label="Telegram User ID" value={viewingUser.telegramUserId} isMono={true} />
             )}
-            <DetailRow label="Banned" value={<Badge variant={viewingUser?.isBanned ? "destructive" : "secondary"}>{viewingUser?.isBanned ? "Yes" : "No"}</Badge>} />
+            <DetailRow label="Active" value={<Badge variant={viewingUser?.isActive ? "default" : "destructive"}>{viewingUser?.isActive ? "Yes" : "No"}</Badge>} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>বন্ধ করুন</Button>
@@ -504,17 +541,17 @@ export default function UsersPage() {
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="isBanned" className="text-right">
-                Ban User
+              <Label htmlFor="isActive" className="text-right">
+                Active Status
               </Label>
               <div className="col-span-3 flex items-center space-x-2">
                 <Switch
-                  id="isBanned"
-                  checked={isBanned}
-                  onCheckedChange={setIsBanned}
+                  id="isActive"
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
                 />
-                <Label htmlFor="isBanned" className="cursor-pointer">
-                  {isBanned ? "Banned" : "Active"}
+                <Label htmlFor="isActive" className="cursor-pointer">
+                  {isActive ? "Active" : "Inactive"}
                 </Label>
               </div>
             </div>

@@ -19,11 +19,12 @@ export type User = {
   hasVerifiedBadge?: boolean; // Manual verified badge (blue checkmark)
   isAdmin?: boolean;
   telegramUserId?: string; // Telegram user ID for admin verification in bot callbacks
-  isBanned?: boolean;
+  isActive?: boolean; // User active status (false = inactive/banned, true = active)
   isReseller?: boolean;
   photoURL?: string;
   points?: number;
   spinData?: UserSpinData; // Spin wheel tracking data
+  scratchCardData?: UserScratchCardData; // Scratch card tracking data
   createdAt?: any;
 }
 
@@ -321,3 +322,63 @@ export type ResellerApplication = {
   reviewedBy?: string;
   rejectionReason?: string;
 };
+
+// Scratch Card Reward types
+export type ScratchCardReward = {
+  id: string;
+  name: string;
+  type: 'wallet' | 'coins' | 'item' | 'no_reward';
+  category?: 'free' | 'paid';      // Added: to distinguish reward pools
+  value: number;
+  imageUrl?: string;
+  isActive: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+};
+
+export type ScratchCardConfig = {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  isActive: boolean;
+  type?: 'free' | 'paid';          // Added
+  cost?: number;                   // Added: for paid cards
+  availableDay: number;
+  rewards: string[];
+  claimLimit?: number;
+  currentWeekClaims?: number;
+  sortOrder?: number;
+  createdAt?: any;
+  updatedAt?: any;
+};
+
+export type UserScratchCardClaim = {
+  id: string;
+  userId: string;
+  userName?: string;
+  userPhotoURL?: string;
+  scratchCardId: string;
+  cardType?: 'free' | 'paid';      // Added
+  claimedAt: string;
+  scratchedAt?: string;
+  rewardId?: string;
+  selectedRewardId?: string;
+  rewardDetails?: {
+    name: string;
+    type: 'wallet' | 'coins' | 'item' | 'no_reward';
+    value: number;
+    imageUrl?: string;
+  };
+  submittedUid?: string;
+  status: 'claimed' | 'scratched' | 'revealed' | 'purchased';
+};
+
+export type UserScratchCardData = {
+  lastClaimDate?: string;          // Last claim date (ISO format) for FREE cards
+  totalClaims?: number;            // Lifetime claims
+  totalRewardsWon?: number;        // Total reward value
+  monthlyPaidClaims?: number;      // Claims count for current month (PAID cards)
+  lastPaidClaimMonth?: string;     // format: "YYYY-MM"
+};
+

@@ -121,17 +121,46 @@ export function ImageUpload({
                 <div className="space-y-2">
                     {!value ? (
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                            <IKUpload
+                            <input
                                 ref={uploadRef}
-                                {...imagekitConfig}
-                                onError={onError}
-                                onSuccess={onSuccess}
-                                onUploadStart={onUploadStart}
-                                className="hidden"
+                                type="file"
                                 accept="image/*"
-                                fileName="upload.jpg"
-                                useUniqueFileName={true}
-                                folder="/admin-uploads"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+
+                                    try {
+                                        setIsUploading(true);
+                                        const formData = new FormData();
+                                        formData.append('file', file);
+                                        formData.append('fileName', file.name);
+                                        formData.append('folder', '/admin-uploads');
+
+                                        // Get auth parameters
+                                        const authRes = await fetch('/api/imagekit-auth');
+                                        const authData = await authRes.json();
+
+                                        formData.append('publicKey', imagekitConfig.publicKey);
+                                        formData.append('signature', authData.signature);
+                                        formData.append('expire', authData.expire);
+                                        formData.append('token', authData.token);
+
+                                        const uploadRes = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+                                            method: 'POST',
+                                            body: formData,
+                                        });
+
+                                        const data = await uploadRes.json();
+                                        if (data.url) {
+                                            onSuccess(data);
+                                        } else {
+                                            throw new Error(data.message || 'Upload failed');
+                                        }
+                                    } catch (err) {
+                                        onError(err);
+                                    }
+                                }}
+                                className="hidden"
                             />
                             <Button
                                 type="button"

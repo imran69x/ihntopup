@@ -188,15 +188,17 @@ export async function POST(request: NextRequest) {
                                 const userData = userDoc.data();
                                 const isResellerProduct = orderData.isResellerProduct || false;
 
+                                const updates: any = { isActive: true }; // Activate user when order is completed
+
                                 if (!isResellerProduct) {
                                     const coinReward = (orderData.totalAmount || 0) * 0.1;
                                     const currentCoinFund = userData?.coinFund || 0;
                                     const newCoinFund = currentCoinFund + coinReward;
 
-                                    transaction.update(userRef, {
-                                        coinFund: newCoinFund
-                                    });
+                                    updates.coinFund = newCoinFund;
                                 }
+
+                                transaction.update(userRef, updates);
                             }
 
                             transaction.update(orderRef, {

@@ -3,11 +3,12 @@ import BannerSlider from '@/components/BannerSlider';
 import NoticeBanner from '@/components/NoticeBanner';
 import RecentOrders from '@/components/RecentOrders';
 import TopUpCard from '@/components/TopUpCard';
+import ScratchCard from '@/components/ScratchCard';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { BannerData, TopUpCategory, TopUpCardData } from '@/lib/data';
-import { Loader2 } from 'lucide-react';
+import type { BannerData, TopUpCategory, TopUpCardData, ScratchCardConfig } from '@/lib/data';
+import { Loader2, Gift } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
 
 export default function Home() {
   const firestore = useFirestore();
@@ -20,6 +21,8 @@ export default function Home() {
 
   const [cardsByCategory, setCardsByCategory] = useState<Record<string, TopUpCardData[]>>({});
   const [isLoadingCards, setIsLoadingCards] = useState(true);
+  const [scratchCards, setScratchCards] = useState<ScratchCardConfig[]>([]);
+  const [isLoadingScratchCards, setIsLoadingScratchCards] = useState(true);
 
   const categories = useMemo(() => {
     if (!allCategories) return [];
@@ -52,6 +55,26 @@ export default function Home() {
     }
   }, [firestore, categories]);
 
+  // Fetch scratch cards
+  useEffect(() => {
+    if (firestore) {
+      const fetchScratchCards = async () => {
+        setIsLoadingScratchCards(true);
+        // Fetch the single default scratch card
+        const defaultCardRef = doc(firestore, 'scratch_cards', 'default');
+        const defaultCardDoc = await getDoc(defaultCardRef);
+        if (defaultCardDoc.exists() && defaultCardDoc.data()?.isActive) {
+          const cardData = { ...defaultCardDoc.data(), id: defaultCardDoc.id } as ScratchCardConfig;
+          setScratchCards([cardData]);
+        } else {
+          setScratchCards([]);
+        }
+        setIsLoadingScratchCards(false);
+      };
+      fetchScratchCards();
+    }
+  }, [firestore]);
+
   const isLoading = isLoadingBanners || isLoadingCategories || isLoadingCards;
 
   return (
@@ -76,16 +99,34 @@ export default function Home() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          categories?.map((category) => (
-            <section key={category.id} className="mb-8">
-              <h2 className="text-2xl font-bold font-headline mb-4 text-center">{category.name}</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-8 gap-2 sm:gap-4">
-                {cardsByCategory[category.id]?.map((card) => (
-                  <TopUpCard key={card.id} card={card} />
-                ))}
-              </div>
-            </section>
-          ))
+          <>
+            {/* Scratch Cards Section */}
+            {!isLoadingScratchCards && scratchCards.length > 0 && (
+              <section className="mb-8">
+                <h2 className="text-2xl font-bold font-headline mb-4 text-center flex items-center justify-center gap-2">
+                  <Gift className="h-6 w-6 text-yellow-500" />
+                  স্ক্র্যাচ কার্ড (Scratch Cards)
+                </h2>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-8 gap-2 sm:gap-4">
+                  {scratchCards.map((card) => (
+                    <ScratchCard key={card.id} card={card} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Regular Categories */}
+            {categories?.map((category) => (
+              <section key={category.id} className="mb-8">
+                <h2 className="text-2xl font-bold font-headline mb-4 text-center">{category.name}</h2>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-8 gap-2 sm:gap-4">
+                  {cardsByCategory[category.id]?.map((card) => (
+                    <TopUpCard key={card.id} card={card} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </>
         )}
 
         <div className="px-4 sm:px-0">

@@ -28,31 +28,29 @@ function AppContent({ children }: { children: React.ReactNode }) {
   }, []);
 
   const showFullLayout = !isAdminPage && !isPaymentPage;
-  const isBanned = isLoggedIn && appUser?.isBanned === true;
 
   // Debug logging
   useEffect(() => {
     if (isClient && appUser) {
-      console.log('🔍 BAN CHECK:', {
+      console.log('🔍 USER DATA:', {
         isLoggedIn,
         userId: appUser.id,
-        isBanned: appUser.isBanned,
-        banStatus: isBanned,
+        isActive: appUser.isActive,
         appUserKeys: Object.keys(appUser)
       });
     }
-  }, [isClient, appUser, isLoggedIn, isBanned]);
+  }, [isClient, appUser, isLoggedIn]);
 
   return (
     <>
       {showFullLayout ? (
-        <div className={cn("relative flex min-h-screen flex-col", isBanned && "blur-sm pointer-events-none")}>
+        <div className="relative flex min-h-screen flex-col">
           <Header />
           <main className="flex-1 pb-24 pt-16">{children}</main>
           <Footer />
         </div>
       ) : (
-        <main className={cn(isBanned && "blur-sm pointer-events-none")}>{children}</main>
+        <main>{children}</main>
       )}
 
       {isClient && showFullLayout && <BottomNav />}
@@ -67,8 +65,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       {/* Support Button - Show on all pages except admin */}
       {isClient && !isAdminPage && <FloatingSupportButton />}
 
-      {/* Show ban overlay if user is banned */}
-      {isBanned && <BannedUserOverlay telegramLink="https://t.me/ihntopup_support" />}
+
 
       <Toaster />
     </>

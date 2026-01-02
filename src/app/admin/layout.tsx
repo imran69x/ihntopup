@@ -267,6 +267,11 @@ function SidebarNav({ isMobile = false, onLinkClick }: { isMobile?: boolean, onL
         <SubNavItem href="/admin/topup/categories" pathname={pathname} onClick={handleLinkClick}>Categories</SubNavItem>
         <SubNavItem href="/admin/topup/cards" pathname={pathname} onClick={handleLinkClick}>Cards</SubNavItem>
         <SubNavItem href="/admin/topup/social-media" pathname={pathname} onClick={handleLinkClick}>Social Media</SubNavItem>
+
+
+        <SubNavItem href="/admin/topup/scratch-manage" pathname={pathname} onClick={handleLinkClick}>Scratch Card</SubNavItem>
+        <SubNavItem href="/admin/topup/scratch-rewards" pathname={pathname} onClick={handleLinkClick}>Scratch Rewards</SubNavItem>
+        <SubNavItem href="/admin/topup/scratch-winners" pathname={pathname} onClick={handleLinkClick}>Scratch Winners</SubNavItem>
       </CollapsibleNavItem>
 
       <NavItem href="/admin/reseller-cards" icon={Package} pathname={pathname} onClick={handleLinkClick}>Reseller Cards</NavItem>
