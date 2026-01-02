@@ -103,11 +103,11 @@ export function buildOrderActionKeyboard(orderId: string) {
         inline_keyboard: [
             [
                 { text: '✅ Approve', callback_data: `order_action:Completed:${orderId}` },
-                { text: '⏳ Processing', callback_data: `order_action:Processing:${orderId}` }
+                { text: '❌ Reject', callback_data: `order_action:Cancelled:${orderId}` }
             ],
             [
-                { text: '❌ Reject', callback_data: `order_reject:${orderId}` },
-                { text: '💰 Refund', callback_data: `order_refund:${orderId}` }
+                { text: '💰 Refund', callback_data: `order_action:Refunded:${orderId}` },
+                { text: '⏳ Processing', callback_data: `order_action:Processing:${orderId}` }
             ]
         ]
     };

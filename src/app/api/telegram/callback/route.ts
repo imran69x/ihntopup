@@ -137,56 +137,10 @@ export async function POST(request: NextRequest) {
             console.log('  - User ID:', telegramUserId);
             console.log('  - Message ID:', messageId);
             console.log('  - Chat ID:', chatId);
-            console.log('  - Starts with order_back?', callbackData.startsWith('order_back:'));
-            console.log('  - Starts with order_reject?', callbackData.startsWith('order_reject:'));
-            console.log('  - Starts with order_refund?', callbackData.startsWith('order_refund:'));
             console.log('  - Starts with order_action?', callbackData.startsWith('order_action:'));
             console.log('  - Starts with wallet_action?', callbackData.startsWith('wallet_action:'));
 
-            // Handle "Back" button
-            if (callbackData.startsWith('order_back:')) {
-                const orderId = callbackData.split(':')[1];
-                const keyboard = buildOrderActionKeyboard(orderId);
-
-                // Keep original message text, only update keyboard
-                await editTelegramMessage(chatId, messageId, callbackQuery.message.text || '', keyboard);
-                await answerCallbackQuery(callbackQuery.id, '« Back to main actions', false);
-                return NextResponse.json({ success: true });
-            }
-
-            // Handle "Reject" button - show reason options
-            if (callbackData.startsWith('order_reject:')) {
-                const orderId = callbackData.split(':')[1];
-                const keyboard = buildRejectReasonKeyboard(orderId);
-
-                console.log('🔄 Updating message with reject reasons for order:', orderId);
-                console.log('📋 Keyboard:', JSON.stringify(keyboard, null, 2));
-
-                // Keep original message text, only update keyboard
-                const success = await editTelegramMessage(chatId, messageId, callbackQuery.message.text || '', keyboard);
-                console.log('✅ Message edit success:', success);
-
-                await answerCallbackQuery(callbackQuery.id, '❌ Select rejection reason', false);
-                return NextResponse.json({ success: true });
-            }
-
-            // Handle "Refund" button - show reason options
-            if (callbackData.startsWith('order_refund:')) {
-                const orderId = callbackData.split(':')[1];
-                const keyboard = buildRefundReasonKeyboard(orderId);
-
-                console.log('🔄 Updating message with refund reasons for order:', orderId);
-                console.log('📋 Keyboard:', JSON.stringify(keyboard, null, 2));
-
-                // Keep original message text, only update keyboard
-                const success = await editTelegramMessage(chatId, messageId, callbackQuery.message.text || '', keyboard);
-                console.log('✅ Message edit success:', success);
-
-                await answerCallbackQuery(callbackQuery.id, '💰 Select refund reason', false);
-                return NextResponse.json({ success: true });
-            }
-
-            // Handle order actions (with reason in callback data)
+            // Handle order actions (direct processing)
             if (callbackData.startsWith('order_action:')) {
                 const parts = callbackData.split(':');
                 if (parts.length < 3) {
@@ -196,7 +150,7 @@ export async function POST(request: NextRequest) {
 
                 const newStatus = parts[1];
                 const orderId = parts[2];
-                const reason = parts[3]; // Optional reason from pre-defined buttons
+                // const reason = parts[3]; // Optional reason from pre-defined buttons
 
                 // Verify admin
                 const adminVerification = await verifyAdmin(telegramUserId);
@@ -292,7 +246,6 @@ export async function POST(request: NextRequest) {
                                 processedBy: adminVerification.userId,
                                 processedByTelegramId: telegramUserId,
                                 processedAt: new Date().toISOString(),
-                                ...(reason && { processNote: reason })
                             });
                         });
 
@@ -303,7 +256,6 @@ export async function POST(request: NextRequest) {
                             processedBy: adminVerification.userId,
                             processedByTelegramId: telegramUserId,
                             processedAt: new Date().toISOString(),
-                            ...(reason && { processNote: reason })
                         });
                     }
 
@@ -315,7 +267,7 @@ export async function POST(request: NextRequest) {
                         'Processing': '⏳'
                     } as Record<string, string>)[newStatus] || '✓';
 
-                    const updatedMessage = `${statusEmoji} <b>Order ${newStatus}</b>\n\n📦 Order ID: <code>#${orderData.orderId || orderId}</code>\n👤 Customer: ${orderData.userName}\n💰 Amount: ৳${orderData.totalAmount}\n\n<b>━━━━━━━━━━━━━━━━</b>\n<b>Processed by:</b> ${adminVerification.userName}\n<b>Processed at:</b> ${new Date().toLocaleString()}${reason ? `\n<b>Reason:</b> ${reason}` : ''}`;
+                    const updatedMessage = `${statusEmoji} <b>Order ${newStatus}</b>\n\n📦 Order ID: <code>#${orderData.orderId || orderId}</code>\n👤 Customer: ${orderData.userName}\n💰 Amount: ৳${orderData.totalAmount}\n\n<b>━━━━━━━━━━━━━━━━</b>\n<b>Processed by:</b> ${adminVerification.userName}\n<b>Processed at:</b> ${new Date().toLocaleString()}`;
 
                     await editTelegramMessage(chatId, messageId, updatedMessage);
                     await answerCallbackQuery(callbackQuery.id, `${statusEmoji} Order ${newStatus}!`, false);
