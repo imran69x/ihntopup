@@ -86,7 +86,15 @@ async function editTelegramMessage(
 
         if (replyMarkup) {
             body.reply_markup = replyMarkup;
+            console.log('📤 Sending reply_markup:', JSON.stringify(replyMarkup, null, 2));
         }
+
+        console.log('📨 Telegram API request:', {
+            url: url.substring(0, 50) + '...',
+            chat_id: chatId,
+            message_id: messageId,
+            has_reply_markup: !!replyMarkup
+        });
 
         const response = await fetch(url, {
             method: 'POST',
@@ -95,9 +103,16 @@ async function editTelegramMessage(
         });
 
         const data = await response.json();
+
+        if (!data.ok) {
+            console.error('❌ Telegram API error:', data);
+        } else {
+            console.log('✅ Telegram message edited successfully');
+        }
+
         return data.ok;
     } catch (error) {
-        console.error('Error editing Telegram message:', error);
+        console.error('❌ Error editing Telegram message:', error);
         return false;
     }
 }
@@ -133,7 +148,8 @@ export async function POST(request: NextRequest) {
                 const orderId = callbackData.split(':')[1];
                 const keyboard = buildOrderActionKeyboard(orderId);
 
-                await editTelegramMessage(chatId, messageId, callbackQuery.message.text, keyboard);
+                // Keep original message text, only update keyboard
+                await editTelegramMessage(chatId, messageId, callbackQuery.message.text || '', keyboard);
                 await answerCallbackQuery(callbackQuery.id, '« Back to main actions', false);
                 return NextResponse.json({ success: true });
             }
@@ -143,7 +159,13 @@ export async function POST(request: NextRequest) {
                 const orderId = callbackData.split(':')[1];
                 const keyboard = buildRejectReasonKeyboard(orderId);
 
-                await editTelegramMessage(chatId, messageId, callbackQuery.message.text, keyboard);
+                console.log('🔄 Updating message with reject reasons for order:', orderId);
+                console.log('📋 Keyboard:', JSON.stringify(keyboard, null, 2));
+
+                // Keep original message text, only update keyboard
+                const success = await editTelegramMessage(chatId, messageId, callbackQuery.message.text || '', keyboard);
+                console.log('✅ Message edit success:', success);
+
                 await answerCallbackQuery(callbackQuery.id, '❌ Select rejection reason', false);
                 return NextResponse.json({ success: true });
             }
@@ -153,7 +175,13 @@ export async function POST(request: NextRequest) {
                 const orderId = callbackData.split(':')[1];
                 const keyboard = buildRefundReasonKeyboard(orderId);
 
-                await editTelegramMessage(chatId, messageId, callbackQuery.message.text, keyboard);
+                console.log('🔄 Updating message with refund reasons for order:', orderId);
+                console.log('📋 Keyboard:', JSON.stringify(keyboard, null, 2));
+
+                // Keep original message text, only update keyboard
+                const success = await editTelegramMessage(chatId, messageId, callbackQuery.message.text || '', keyboard);
+                console.log('✅ Message edit success:', success);
+
                 await answerCallbackQuery(callbackQuery.id, '💰 Select refund reason', false);
                 return NextResponse.json({ success: true });
             }
