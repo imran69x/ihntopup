@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo, Suspense, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, addDoc, runTransaction, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, query, addDoc, runTransaction, doc, updateDoc, setDoc, getDocs, where } from "firebase/firestore";
 import type { PaymentMethod, Order } from "@/lib/data";
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -23,7 +23,7 @@ import Link from 'next/link';
 
 type PaymentFormValues = {
   senderPhone: string;
-  transactionId?: string;
+  transactionId: string;
 };
 
 const paymentMethodLogos: { [key: string]: string } = {
@@ -66,6 +66,7 @@ function PaymentPageComponent() {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
 
   const { register, handleSubmit, formState: { errors } } = useForm<PaymentFormValues>();
@@ -145,6 +146,45 @@ function PaymentPageComponent() {
     });
   };
 
+  const checkDuplicateTransactionId = async (transactionId: string): Promise<boolean> => {
+    if (!firestore || !transactionId || !transactionId.trim()) {
+      return false;
+    }
+
+    try {
+      setIsCheckingDuplicate(true);
+
+      // Check in orders collection
+      const ordersQuery = query(
+        collection(firestore, 'orders'),
+        where('manualPaymentDetails.transactionId', '==', transactionId.trim())
+      );
+      const ordersSnapshot = await getDocs(ordersQuery);
+
+      if (!ordersSnapshot.empty) {
+        return true; // Duplicate found in orders
+      }
+
+      // Check in wallet_top_up_requests collection
+      const walletRequestsQuery = query(
+        collection(firestore, 'wallet_top_up_requests'),
+        where('transactionId', '==', transactionId.trim())
+      );
+      const walletRequestsSnapshot = await getDocs(walletRequestsQuery);
+
+      if (!walletRequestsSnapshot.empty) {
+        return true; // Duplicate found in wallet requests
+      }
+
+      return false; // No duplicate found
+    } catch (error) {
+      console.error('Error checking duplicate transaction ID:', error);
+      return false; // On error, allow submission (fail open)
+    } finally {
+      setIsCheckingDuplicate(false);
+    }
+  };
+
   const createOrderObject = (item: any, manualDetails: any): Omit<Order, 'id'> => {
     return {
       userId: firebaseUser!.uid,
@@ -169,6 +209,27 @@ function PaymentPageComponent() {
   const onSubmit = async (data: PaymentFormValues) => {
     if (!paymentInfo || !selectedMethod || !firestore || !firebaseUser) {
       toast({ variant: 'destructive', title: 'একটি ত্রুটি ঘটেছে' });
+      return;
+    }
+
+    // Validate transaction ID is not empty
+    if (!data.transactionId || !data.transactionId.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'ট্রানজেকশন আইডি আবশ্যক',
+        description: 'অনুগ্রহ করে আপনার ট্রানজেকশন আইডি প্রদান করুন।'
+      });
+      return;
+    }
+
+    // Check for duplicate transaction ID
+    const isDuplicate = await checkDuplicateTransactionId(data.transactionId);
+    if (isDuplicate) {
+      toast({
+        variant: 'destructive',
+        title: 'ট্রানজেকশন আইডি ইতিমধ্যে ব্যবহৃত',
+        description: 'এই ট্রানজেকশন আইডি ইতিমধ্যে ব্যবহৃত হয়েছে। অনুগ্রহ করে একটি ভিন্ন ট্রানজেকশন আইডি ব্যবহার করুন।'
+      });
       return;
     }
 
@@ -379,7 +440,8 @@ function PaymentPageComponent() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-white/90">ট্রানজেকশন আইডি দিন</Label>
-                      <Input {...register('transactionId')} className="bg-white text-black" placeholder="ট্রানজেকশন আইডি দিন" />
+                      <Input {...register('transactionId', { required: true })} className="bg-white text-black" placeholder="ট্রানজেকশন আইডি দিন" />
+                      {errors.transactionId && <p className="text-white text-xs font-bold">ট্রানজেকশন আইডি আবশ্যক।</p>}
                     </div>
                     <ul className="space-y-3 pt-4 text-sm">
                       <li className="flex items-start gap-2">
@@ -427,7 +489,8 @@ function PaymentPageComponent() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-white/90">ট্রানজেকশন আইডি দিন</Label>
-                      <Input {...register('transactionId')} className="bg-white text-black" placeholder="ট্রানজেকশন আইডি দিন" />
+                      <Input {...register('transactionId', { required: true })} className="bg-white text-black" placeholder="ট্রানজেকশন আইডি দিন" />
+                      {errors.transactionId && <p className="text-white text-xs font-bold">ট্রানজেকশন আইডি আবশ্যক।</p>}
                     </div>
                     <ul className="space-y-3 pt-4 text-sm">
                       <li className="flex items-start gap-2">
@@ -572,7 +635,8 @@ function PaymentPageComponent() {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-white/90">ট্রানজেকশন আইডি দিন</Label>
-                      <Input {...register('transactionId')} className="bg-white text-black" placeholder="ট্রানজেকশন আইডি দিন" />
+                      <Input {...register('transactionId', { required: true })} className="bg-white text-black" placeholder="ট্রানজেকশন আইডি দিন" />
+                      {errors.transactionId && <p className="text-white text-xs font-bold">ট্রানজেকশন আইডি আবশ্যক।</p>}
                     </div>
                     <ul className="space-y-3 pt-4 text-sm">
                       <li className="flex items-start gap-2">
