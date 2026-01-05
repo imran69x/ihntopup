@@ -140,7 +140,11 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
 
 
     const price = selectedOption ? selectedOption.price : card.price;
-    const totalPrice = price * quantity;
+
+    // Calculate totalPrice based on service type
+    const totalPrice = card.serviceType === 'Social Media'
+        ? (typeof socialMediaQuantity === 'number' ? (price / 1000) * socialMediaQuantity : 0)
+        : (price * quantity);
 
     const discount = appliedCoupon ? (appliedCoupon.type === 'Percentage' ? totalPrice * (appliedCoupon.value / 100) : appliedCoupon.value) : 0;
     const finalPrice = Math.max(0, totalPrice - discount);
