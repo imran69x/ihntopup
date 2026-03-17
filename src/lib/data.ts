@@ -55,7 +55,7 @@ export type TopUpCardData = {
     hint: string;
   };
   price: number;
-  serviceType?: 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'Social Media';
+  serviceType?: 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'Social Media' | 'FFIDChecker';
   purchaseType?: 'Paid' | 'Free'; // Free = Coin only, Paid = Wallet/Instant
   isResellerProduct?: boolean; // True = Only for resellers
   cardType?: 'normal' | 'unipin_only'; // Type of reseller card
