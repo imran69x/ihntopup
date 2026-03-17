@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import type { TopUpCardData, Order as OrderType, Coupon, SavedUid, Notice, TopUpCardOption, PaymentSettings } from '@/lib/data';
@@ -75,6 +75,11 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
     const [minQuantity, setMinQuantity] = useState(10);
     const [maxQuantity, setMaxQuantity] = useState(100000);
 
+    // Game ID Checker state
+    const [isCheckingId, setIsCheckingId] = useState(false);
+    const [checkedUsername, setCheckedUsername] = useState<string | null>(null);
+    const [checkIdError, setCheckIdError] = useState<string | null>(null);
+
     const getInitialOption = () => {
         if (!card.options || card.options.length === 0) return undefined;
         return card.options.find(o => {
@@ -138,6 +143,11 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedOption, quantity]);
 
+    // Clear checked username when UID changes
+    useEffect(() => {
+        setCheckedUsername(null);
+        setCheckIdError(null);
+    }, [uid]);
 
     const price = selectedOption ? selectedOption.price : card.price;
 
@@ -218,6 +228,59 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
             setIsCouponLoading(false);
         }
     }
+
+    const handleCheckGameId = async () => {
+        if (!uid || uid.trim() === '') {
+            toast({
+                variant: 'destructive',
+                title: 'প্লেয়ার আইডি প্রয়োজন',
+                description: 'অনুগ্রহ করে প্রথমে আপনার প্লেয়ার আইডি দিন।'
+            });
+            return;
+        }
+
+        setIsCheckingId(true);
+        setCheckIdError(null);
+        setCheckedUsername(null);
+
+        try {
+            const response = await fetch('/api/game-id-checker', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ playerid: uid.trim() }),
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.username) {
+                setCheckedUsername(data.username);
+                toast({
+                    title: 'প্লেয়ার আইডি যাচাই সফল!',
+                    description: `প্লেয়ার নাম: ${data.username}`,
+                });
+            } else {
+                const errorMsg = data.error || 'প্লেয়ার আইডি যাচাই করা যায়নি';
+                setCheckIdError(errorMsg);
+                toast({
+                    variant: 'destructive',
+                    title: 'যাচাই ব্যর্থ',
+                    description: errorMsg,
+                });
+            }
+        } catch (error) {
+            const errorMsg = 'নেটওয়ার্ক সমস্যা। অনুগ্রহ করে আবার চেষ্টা করুন।';
+            setCheckIdError(errorMsg);
+            toast({
+                variant: 'destructive',
+                title: 'সমস্যা হয়েছে',
+                description: errorMsg,
+            });
+        } finally {
+            setIsCheckingId(false);
+        }
+    };
 
     const handleInstantPay = async () => {
         setIsConfirmingInstantPay(false);
@@ -919,6 +982,57 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                                             <Label htmlFor="uid">{uidLabel}</Label>
                                             <Input id="uid" placeholder={uidPlaceholder} value={uid} onChange={(e) => { setUid(e.target.value); }} />
                                         </div>
+
+                                        {/* Game ID Checker - Only show for Game service type */}
+                                        {card.serviceType === 'Game' && (
+                                            <div className="mt-4 space-y-3">
+                                                <Button
+                                                    type="button"
+                                                    variant={checkedUsername ? "default" : "outline"}
+                                                    size="default"
+                                                    onClick={handleCheckGameId}
+                                                    disabled={!uid || uid.trim() === '' || isCheckingId}
+                                                    className={cn(
+                                                        "w-full text-base",
+                                                        checkedUsername ? "bg-[#337ab7] hover:bg-[#286090] text-white" : "bg-[#337ab7] hover:bg-[#286090] text-white"
+                                                    )}
+                                                >
+                                                    {isCheckingId ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            যাচাই করা হচ্ছে...
+                                                        </>
+                                                    ) : checkedUsername ? (
+                                                        checkedUsername
+                                                    ) : (
+                                                        'আইডির নাম দেখুন'
+                                                    )}
+                                                </Button>
+
+                                                {/* Display checked username and region */}
+                                                {checkedUsername && (
+                                                    <div className="mt-2 text-sm font-semibold">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-muted-foreground w-24">Player Name:</span>
+                                                            <span>{checkedUsername}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-muted-foreground w-24">Region:</span>
+                                                            <span>BD Server</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Display error */}
+                                                {checkIdError && (
+                                                    <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                                        <p className="text-sm text-red-700">{checkIdError}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
                                         {savedUids.length > 0 && (
                                             <div className="mt-3 space-y-2">
                                                 <Label className="text-xs text-muted-foreground">আপনার সংরক্ষিত আইডি</Label>

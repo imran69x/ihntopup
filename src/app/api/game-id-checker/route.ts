@@ -1,0 +1,67 @@
+import { NextResponse } from 'next/server';
+import { getNextApiKey } from '@/lib/ff-api-key-manager';
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const { playerid } = body;
+
+        // Validate playerid
+        if (!playerid || typeof playerid !== 'string' || playerid.trim() === '') {
+            return NextResponse.json(
+                { success: false, error: 'প্লেয়ার আইডি প্রয়োজন' },
+                { status: 400 }
+            );
+        }
+
+        // External API URL
+        const externalApiUrl = `https://api.gameskinbo.com/ff-info/get?uid=${playerid.trim()}&region=BD`;
+
+        console.log('🔍 Calling external API:', externalApiUrl, 'with playerid:', playerid.trim());
+
+        // Get next available API key from the rotation manager
+        const apiKey = await getNextApiKey();
+
+        const response = await fetch(externalApiUrl, {
+            method: 'GET',
+            headers: {
+                'x-api-key': apiKey,
+                'Accept': 'application/json',
+            },
+        });
+
+        console.log('📡 External API response status:', response.status, response.statusText);
+
+        const data = await response.json();
+
+        console.log('📦 External API response data:', data);
+
+        // Success
+        if (response.ok && data?.AccountInfo?.AccountName) {
+            return NextResponse.json({
+                success: true,
+                username: data.AccountInfo.AccountName,
+            });
+        }
+
+        // Error
+        console.error('❌ External API error:', data);
+        return NextResponse.json(
+            {
+                success: false,
+                error: data?.error || 'অবৈধ প্লেয়ার আইডি',
+            },
+            { status: response.status === 200 ? 404 : response.status }
+        );
+
+    } catch (error) {
+        console.error('Game ID checker API error:', error);
+        return NextResponse.json(
+            {
+                success: false,
+                error: 'একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+            },
+            { status: 500 }
+        );
+    }
+}
