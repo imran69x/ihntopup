@@ -41,8 +41,21 @@ export async function POST(request: Request) {
 
         console.log('📡 External API response status:', response.status, response.statusText);
 
-        const data = await response.json();
-        console.log('📦 External API response data:', JSON.stringify(data));
+        const responseText = await response.text();
+        let data;
+        try {
+            data = JSON.parse(responseText);
+            console.log('📦 External API response data:', JSON.stringify(data));
+        } catch (e) {
+            console.error('❌ External API returned non-JSON response:', responseText.substring(0, 200));
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `External API Error: Received invalid response format (Status ${response.status})`,
+                },
+                { status: 502 }
+            );
+        }
 
         // Success
         if (response.ok && data?.AccountInfo?.AccountName) {
