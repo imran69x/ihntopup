@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getNextApiKey } from '@/lib/ff-api-key-manager';
 
-export const runtime = 'edge';
-
 export async function POST(request: Request) {
     try {
         const body = await request.json();

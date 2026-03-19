@@ -25,8 +25,14 @@ export type User = {
   points?: number;
   spinData?: UserSpinData; // Spin wheel tracking data
   scratchCardData?: UserScratchCardData; // Scratch card tracking data
+  ffIdCheckerData?: UserFFIDCheckerData; // FF ID Checker usage tracking
   createdAt?: any;
 }
+
+export type UserFFIDCheckerData = {
+  lastCheckMonth?: string;     // format: "YYYY-MM"
+  monthlyChecks?: number;      // count of checks in that month
+};
 
 export type UnipinCode = {
   code: string;

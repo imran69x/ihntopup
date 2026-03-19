@@ -803,7 +803,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                     <FFIDCheckerView />
                     
                     {card.description && (
-                        <div className="max-w-4xl mx-auto">
+                        <div className="max-w-4xl mx-auto print:hidden">
                             <SectionCard title="বিবরণ" >
                                 <DescriptionRenderer description={card.description} />
                             </SectionCard>
@@ -1320,7 +1320,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                         </CardContent>
                     </Card>
 
-                    <div className="md:hidden">
+                    <div className="md:hidden print:hidden">
                         <SectionCard title="বিবরণ" >
                             <DescriptionRenderer description={card.description} />
                         </SectionCard>

@@ -69,7 +69,7 @@ type CardFormValues = {
   description: string
   imageUrl: string
   categoryId: string;
-  serviceType: 'Game' | 'Others' | 'eFootball' | 'Subscriptions';
+  serviceType: 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'FFIDChecker';
   purchaseType: 'Paid' | 'Free';
   isActive: boolean
   price?: number;
@@ -126,6 +126,14 @@ export default function TopupCardsPage() {
 
   const hasOptions = watch('options').length > 0
 
+  const categoryId = watch('categoryId');
+  const serviceType = watch('serviceType');
+
+  const isFFIDChecker = React.useMemo(() => {
+    const cat = categories?.find(c => c.id === categoryId);
+    return cat?.name?.toLowerCase().includes('id checker') || cat?.name?.toLowerCase().includes('আইডি চেকার') || serviceType === 'FFIDChecker';
+  }, [categoryId, categories, serviceType]);
+
   const handleEdit = (card: TopUpCardData) => {
     setEditingCard(card)
     // Ensure serviceType is compatible with CardFormValues
@@ -135,7 +143,7 @@ export default function TopupCardsPage() {
       description: card.description || '',
       imageUrl: card.image?.src || '',
       categoryId: card.categoryId,
-      serviceType: serviceType as 'Game' | 'Others' | 'eFootball' | 'Subscriptions',
+      serviceType: serviceType as 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'FFIDChecker',
       purchaseType: card.purchaseType || 'Paid',
       isActive: card.isActive ?? true,
       price: card.price,
@@ -172,22 +180,26 @@ export default function TopupCardsPage() {
 
     const collectionRef = collection(firestore, 'top_up_cards');
 
-    // Check if this is a reseller product
     const isResellerProduct = data.categoryId === 'reseller';
+
+    const finalServiceType = isFFIDChecker ? 'FFIDChecker' : data.serviceType;
+    const finalPurchaseType = isFFIDChecker ? 'Free' : data.purchaseType;
+    const finalOptions = isFFIDChecker ? [] : data.options.map(opt => ({
+      ...opt,
+      stockLimit: opt.stockLimit ? Number(opt.stockLimit) : null,
+      stockSoldCount: opt.stockSoldCount || 0
+    }));
+    const finalPrice = isFFIDChecker ? 0 : (data.options.length > 0 ? (data.options[0].price || 0) : (data.price || 0));
 
     const docData: any = {
       name: data.name,
       description: data.description,
       image: { src: data.imageUrl, hint: data.name.toLowerCase().replace(/ /g, '-') },
       categoryId: isResellerProduct ? 'reseller' : data.categoryId,
-      serviceType: data.serviceType,
-      purchaseType: data.purchaseType,
-      price: data.options.length > 0 ? (data.options[0].price || 0) : (data.price || 0),
-      options: data.options.map(opt => ({
-        ...opt,
-        stockLimit: opt.stockLimit ? Number(opt.stockLimit) : null,
-        stockSoldCount: opt.stockSoldCount || 0
-      })),
+      serviceType: finalServiceType,
+      purchaseType: finalPurchaseType,
+      price: finalPrice,
+      options: finalOptions,
       isActive: data.isActive,
       sortOrder: Number(data.sortOrder) || 0,
     };
@@ -402,29 +414,32 @@ export default function TopupCardsPage() {
                         <SelectItem value="eFootball">eFootball</SelectItem>
                         <SelectItem value="Subscriptions">SUBSCRIPTIONS</SelectItem>
                         <SelectItem value="Others">অন্যান্য সার্ভিস</SelectItem>
+                        <SelectItem value="FFIDChecker">আইডি চেকার</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="purchaseType">পেমেন্ট টাইপ</Label>
-                <Controller
-                  name="purchaseType"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="পেমেন্ট টাইপ নির্বাচন করুন" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Paid">Paid (Wallet/Instant)</SelectItem>
-                        <SelectItem value="Free">Free (Coin Only)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
+              {!isFFIDChecker && (
+                <div className="space-y-2">
+                  <Label htmlFor="purchaseType">পেমেন্ট টাইপ</Label>
+                  <Controller
+                    name="purchaseType"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="পেমেন্ট টাইপ নির্বাচন করুন" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Paid">Paid (Wallet/Instant)</SelectItem>
+                          <SelectItem value="Free">Free (Coin Only)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex items-center pt-4 space-x-2">
@@ -452,51 +467,55 @@ export default function TopupCardsPage() {
               />
             </div>
 
-            <div className="border-t my-4" />
+            {!isFFIDChecker && (
+              <>
+                <div className="border-t my-4" />
 
-            <div className="space-y-4">
-              <Label>মূল্যের বিকল্প</Label>
-              {fields.map((field, index) => (
-                <div key={field.id} className="flex items-end gap-2 p-3 border rounded-lg bg-muted">
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 flex-grow">
-                    <div className="space-y-1">
-                      <Label htmlFor={`options.${index}.name`} className="text-xs">বিকল্পের নাম</Label>
-                      <Input {...register(`options.${index}.name` as const, { required: true })} placeholder="যেমন ১০০ ডায়মন্ড" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor={`options.${index}.price`} className="text-xs">মূল্য (৳)</Label>
-                      <Input type="number" {...register(`options.${index}.price` as const, { required: true, valueAsNumber: true })} placeholder="যেমন ১০০" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor={`options.${index}.stockLimit`} className="text-xs">স্টক লিমিট (ঐচ্ছিক)</Label>
-                      <Input type="number" {...register(`options.${index}.stockLimit` as const, { valueAsNumber: true })} placeholder="e.g., 20" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-1.5 ml-2">
-                    <Controller
-                      name={`options.${index}.inStock`}
-                      control={control}
-                      defaultValue={true}
-                      render={({ field }) => (
-                        <Switch
-                          id={`options-instock-${index}`}
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                <div className="space-y-4">
+                  <Label>মূল্যের বিকল্প</Label>
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-2 p-3 border rounded-lg bg-muted">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 flex-grow">
+                        <div className="space-y-1">
+                          <Label htmlFor={`options.${index}.name`} className="text-xs">বিকল্পের নাম</Label>
+                          <Input {...register(`options.${index}.name` as const, { required: true })} placeholder="যেমন ১০০ ডায়মন্ড" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor={`options.${index}.price`} className="text-xs">মূল্য (৳)</Label>
+                          <Input type="number" {...register(`options.${index}.price` as const, { required: true, valueAsNumber: true })} placeholder="যেমন ১০০" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor={`options.${index}.stockLimit`} className="text-xs">স্টক লিমিট (ঐচ্ছিক)</Label>
+                          <Input type="number" {...register(`options.${index}.stockLimit` as const, { valueAsNumber: true })} placeholder="e.g., 20" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center gap-1.5 ml-2">
+                        <Controller
+                          name={`options.${index}.inStock`}
+                          control={control}
+                          defaultValue={true}
+                          render={({ field }) => (
+                            <Switch
+                              id={`options-instock-${index}`}
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                    <Label htmlFor={`options-instock-${index}`} className="text-xs">In Stock</Label>
-                  </div>
-                  <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => remove(index)}>
-                    <Trash2 className="h-4 w-4" />
+                        <Label htmlFor={`options-instock-${index}`} className="text-xs">In Stock</Label>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => remove(index)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', price: 0, inStock: true, stockLimit: undefined, stockSoldCount: 0 })}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    বিকল্প যোগ করুন
                   </Button>
                 </div>
-              ))}
-              <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', price: 0, inStock: true, stockLimit: undefined, stockSoldCount: 0 })}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                বিকল্প যোগ করুন
-              </Button>
-            </div>
+              </>
+            )}
 
 
             <DialogFooter className="mt-4">
