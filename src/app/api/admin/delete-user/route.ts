@@ -15,12 +15,15 @@ export async function POST(request: NextRequest) {
 
         const token = authHeader.split('Bearer ')[1];
 
+        const db = adminFirestore();
+        const auth = adminAuth();
+
         // Verify the token and get the user
-        const decodedToken = await adminAuth.verifyIdToken(token);
+        const decodedToken = await auth.verifyIdToken(token);
         const adminUserId = decodedToken.uid;
 
         // Check if the requesting user is an admin
-        const adminUserDoc = await adminFirestore.collection('users').doc(adminUserId).get();
+        const adminUserDoc = await db.collection('users').doc(adminUserId).get();
         const adminUser = adminUserDoc.data();
 
         if (!adminUser || !adminUser.isAdmin) {
@@ -52,7 +55,7 @@ export async function POST(request: NextRequest) {
         let authDeleted = false;
         try {
             await Promise.race([
-                adminAuth.deleteUser(userId),
+                auth.deleteUser(userId),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Auth deletion timeout')), 10000))
             ]);
             authDeleted = true;
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
 
         // Delete user document from Firestore (critical)
         try {
-            await adminFirestore.collection('users').doc(userId).delete();
+            await db.collection('users').doc(userId).delete();
             console.log(`User ${userId} deleted from Firestore`);
         } catch (firestoreError) {
             console.error('Error deleting user from Firestore:', firestoreError);

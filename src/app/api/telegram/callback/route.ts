@@ -1,20 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { adminFirestore } from '@/lib/firebase-admin';
 import { buildOrderActionKeyboard, buildRejectReasonKeyboard, buildRefundReasonKeyboard } from '@/lib/telegram';
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-    initializeApp({
-        credential: cert({
-            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-    });
-}
-
-const db = getFirestore();
+const db = adminFirestore();
 
 // Helper to verify admin by Telegram User ID
 async function verifyAdmin(telegramUserId: string): Promise<{ isAdmin: boolean; userId?: string; userName?: string }> {

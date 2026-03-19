@@ -1,38 +1,36 @@
 
 
-import { initializeApp, getApps, App, cert, applicationDefault } from 'firebase-admin/app';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import 'server-only';
 
-let adminApp: App;
+function getAdminApp(): App {
+    const apps = getApps();
+    if (apps.length > 0) return apps[0];
 
-if (!getApps().length) {
     try {
-        // Create service account object from environment variables
         const serviceAccount = {
             projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            // Handle both quoted and unquoted private keys, and replace escaped newlines
             privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/gm, '\n'),
         };
 
-        // Validate that all required credentials are present
         if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+            // During build time, variables might be missing. We shouldn't throw here if we're just analyzing.
+            // But if this is called at runtime, it's a fatal error.
             throw new Error('Missing required Firebase Admin credentials. Please check your environment variables.');
         }
 
-        adminApp = initializeApp({
+        return initializeApp({
             credential: cert(serviceAccount),
             projectId: serviceAccount.projectId,
         });
     } catch (e: any) {
         console.error("Failed to initialize Firebase Admin SDK:", e);
-        throw new Error(`Firebase Admin SDK initialization failed: ${e.message}`);
+        throw e;
     }
-} else {
-    adminApp = getApps()[0];
 }
 
-export const adminFirestore = getFirestore(adminApp);
-export const adminAuth = getAuth(adminApp);
+export const adminFirestore = () => getFirestore(getAdminApp());
+export const adminAuth = () => getAuth(getAdminApp());
