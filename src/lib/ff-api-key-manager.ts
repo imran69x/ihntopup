@@ -1,5 +1,3 @@
-import 'server-only';
-
 // All 5 API Keys from environment variables
 const API_KEYS = [
     process.env.FF_API_KEY_1,
