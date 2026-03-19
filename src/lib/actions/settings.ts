@@ -23,7 +23,7 @@ type UpdatePaymentSettingsOutput = z.infer<typeof UpdatePaymentSettingsOutputSch
 
 export async function updatePaymentSettings({ mode }: UpdatePaymentSettingsInput): Promise<UpdatePaymentSettingsOutput> {
     try {
-      const settingsRef = adminFirestore.collection('settings').doc('payment');
+      const settingsRef = adminFirestore().collection('settings').doc('payment');
       await settingsRef.set({ mode: mode }, { merge: true });
       return { success: true, message: 'Payment settings updated successfully.' };
     } catch (error: any) {
