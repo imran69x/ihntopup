@@ -27,6 +27,7 @@ import {
     AlertDialogTitle,
     AlertDialogDescription,
 } from "@/components/ui/alert-dialog"
+import FFIDCheckerView from './FFIDCheckerView';
 
 interface TopUpDetailClientProps {
     card: TopUpCardData;
@@ -778,9 +779,10 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                     </div>
                 </AlertDialogContent>
             </AlertDialog>
-            <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+
+            {card.serviceType === 'FFIDChecker' ? (
                 <div className="space-y-8">
-                    <Card className="shadow-lg overflow-hidden">
+                    <Card className="shadow-lg overflow-hidden max-w-4xl mx-auto">
                         <CardContent className="flex items-center gap-4 p-4">
                             <div className="relative h-24 w-24 flex-shrink-0">
                                 <Image
@@ -793,10 +795,41 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                             </div>
                             <div>
                                 <h1 className="text-xl lg:text-2xl font-bold font-headline">{card.name}</h1>
-                                <p className="text-sm text-muted-foreground">গেম / টপ-আপ</p>
+                                <p className="text-sm text-muted-foreground">টুলস</p>
                             </div>
                         </CardContent>
                     </Card>
+                    
+                    <FFIDCheckerView />
+                    
+                    {card.description && (
+                        <div className="max-w-4xl mx-auto">
+                            <SectionCard title="বিবরণ" >
+                                <DescriptionRenderer description={card.description} />
+                            </SectionCard>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+                    <div className="space-y-8">
+                        <Card className="shadow-lg overflow-hidden">
+                            <CardContent className="flex items-center gap-4 p-4">
+                                <div className="relative h-24 w-24 flex-shrink-0">
+                                    <Image
+                                        src={card.image.src || '/placeholder.png'}
+                                        alt={card.name}
+                                        fill
+                                        className="object-cover rounded-lg"
+                                        data-ai-hint={card.image.hint}
+                                    />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl lg:text-2xl font-bold font-headline">{card.name}</h1>
+                                    <p className="text-sm text-muted-foreground">গেম / টপ-আপ</p>
+                                </div>
+                            </CardContent>
+                        </Card>
 
                     {hasOptions && card.serviceType !== 'Social Media' && (
                         <SectionCard title="সার্ভিস নির্বাচন করুন" step="1">
@@ -1294,6 +1327,7 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                     </div>
                 </div>
             </div>
+            )}
         </>
     );
 }

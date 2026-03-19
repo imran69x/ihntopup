@@ -118,7 +118,7 @@ export type Order = {
     password?: string;
     whatsappNumber: string;
   }
-  serviceType?: 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'Social Media'; // Added to identify order type
+  serviceType?: 'Game' | 'Others' | 'eFootball' | 'Subscriptions' | 'Social Media' | 'FFIDChecker'; // Added to identify order type
   isResellerProduct?: boolean; // Added this field
   allocatedCodes?: string[]; // Unipin codes assigned to this order
   // Telegram processing metadata
