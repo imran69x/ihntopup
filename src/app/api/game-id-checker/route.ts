@@ -14,13 +14,22 @@ export async function POST(request: Request) {
             );
         }
 
+        // Get next available API key
+        let apiKey: string;
+        try {
+            apiKey = await getNextApiKey();
+            console.log('✅ Got API key:', apiKey ? 'present' : 'MISSING');
+        } catch (keyError: any) {
+            console.error('❌ API key error:', keyError.message);
+            return NextResponse.json(
+                { success: false, error: `API Key Error: ${keyError.message}` },
+                { status: 500 }
+            );
+        }
+
         // External API URL
         const externalApiUrl = `https://api.gameskinbo.com/ff-info/get?uid=${playerid.trim()}&region=BD`;
-
-        console.log('🔍 Calling external API:', externalApiUrl, 'with playerid:', playerid.trim());
-
-        // Get next available API key from the rotation manager
-        const apiKey = await getNextApiKey();
+        console.log('🔍 Calling external API:', externalApiUrl);
 
         const response = await fetch(externalApiUrl, {
             method: 'GET',
@@ -33,8 +42,7 @@ export async function POST(request: Request) {
         console.log('📡 External API response status:', response.status, response.statusText);
 
         const data = await response.json();
-
-        console.log('📦 External API response data:', data);
+        console.log('📦 External API response data:', JSON.stringify(data));
 
         // Success
         if (response.ok && data?.AccountInfo?.AccountName) {
@@ -44,22 +52,22 @@ export async function POST(request: Request) {
             });
         }
 
-        // Error
+        // Error from external API
         console.error('❌ External API error:', data);
         return NextResponse.json(
             {
                 success: false,
-                error: data?.error || 'অবৈধ প্লেয়ার আইডি',
+                error: data?.error || data?.message || `External API error (status: ${response.status})`,
             },
             { status: response.status === 200 ? 404 : response.status }
         );
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Game ID checker API error:', error);
         return NextResponse.json(
             {
                 success: false,
-                error: 'একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+                error: `Server error: ${error.message}`,
             },
             { status: 500 }
         );
