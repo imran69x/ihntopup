@@ -993,8 +993,10 @@ export default function TopUpDetailClient({ card }: TopUpDetailClientProps) {
                                                     onClick={handleCheckGameId}
                                                     disabled={!uid || uid.trim() === '' || isCheckingId}
                                                     className={cn(
-                                                        "w-full text-base",
-                                                        checkedUsername ? "bg-[#337ab7] hover:bg-[#286090] text-white" : "bg-[#337ab7] hover:bg-[#286090] text-white"
+                                                        "w-full text-base font-bold",
+                                                        checkedUsername 
+                                                            ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white" 
+                                                            : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                                                     )}
                                                 >
                                                     {isCheckingId ? (
