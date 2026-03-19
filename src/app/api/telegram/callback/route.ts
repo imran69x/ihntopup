@@ -307,17 +307,14 @@ export async function POST(request: NextRequest) {
                         .limit(50)
                         .get();
 
-                    let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot | null = null;
-                    pendingRequests.forEach(doc => {
+                    const matchedDoc = pendingRequests.docs.find(doc => {
                         const data = doc.data() as any;
-                        if (data.id === requestId) {
-                            matchedDoc = doc;
-                        }
+                        return data.id === requestId;
                     });
-
+                    
                     if (matchedDoc) {
                         requestDoc = matchedDoc;
-                        requestRef = db.collection('wallet_top_up_requests').doc(matchedDoc!.id);
+                        requestRef = db.collection('wallet_top_up_requests').doc(matchedDoc.id);
                     } else {
                         await answerCallbackQuery(callbackQuery.id, '❌ Request not found', true);
                         return NextResponse.json({ success: false, error: 'Request not found' });
