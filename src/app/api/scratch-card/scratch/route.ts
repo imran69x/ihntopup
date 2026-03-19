@@ -13,8 +13,11 @@ export async function POST(request: NextRequest) {
 
         const token = authHeader.split('Bearer ')[1];
 
+        const db = adminFirestore();
+        const auth = adminAuth();
+
         // Verify the token
-        const decodedToken = await adminAuth.verifyIdToken(token);
+        const decodedToken = await auth.verifyIdToken(token);
         const userId = decodedToken.uid;
 
         // Get request body
@@ -23,8 +26,6 @@ export async function POST(request: NextRequest) {
         if (!claimId) {
             return NextResponse.json({ error: 'Claim ID is required' }, { status: 400 });
         }
-
-        const db = adminFirestore;
 
         // Get claim document
         const claimDoc = await db.collection('scratch_card_claims').doc(claimId).get();

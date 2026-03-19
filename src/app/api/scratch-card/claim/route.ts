@@ -13,8 +13,11 @@ export async function POST(request: NextRequest) {
 
         const token = authHeader.split('Bearer ')[1];
 
+        const db = adminFirestore();
+        const auth = adminAuth();
+
         // Verify the token
-        const decodedToken = await adminAuth.verifyIdToken(token);
+        const decodedToken = await auth.verifyIdToken(token);
         const userId = decodedToken.uid;
 
         // Get request body
@@ -28,8 +31,6 @@ export async function POST(request: NextRequest) {
         if (quantity < 1 || quantity > 100) { // Safety limit
             return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 });
         }
-
-        const db = adminFirestore;
 
         // Get user document
         const userDoc = await db.collection('users').doc(userId).get();

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const usersRef = adminFirestore.collection('users');
+        const usersRef = adminFirestore().collection('users');
 
         // Query all users who are currently active
         const activeUsersSnapshot = await usersRef.where('isActive', '==', true).get();
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
         // Batch update - Firestore limits batches to 500 operations
         const batches = [];
-        let currentBatch = adminFirestore.batch();
+        let currentBatch = adminFirestore().batch();
         let operationCount = 0;
 
         activeUsersSnapshot.docs.forEach((doc) => {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
             if (operationCount === 500) {
                 batches.push(currentBatch.commit());
-                currentBatch = adminFirestore.batch();
+                currentBatch = adminFirestore().batch();
                 operationCount = 0;
             }
         });
